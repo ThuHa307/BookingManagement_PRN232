@@ -57,7 +57,7 @@ namespace WebMVC.Controllers
 
                 // Build query string for API call
                 var queryParams = new List<string>();
-                
+
                 if (!string.IsNullOrEmpty(roomType))
                     queryParams.Add($"roomType={Uri.EscapeDataString(roomType)}");
                 if (!string.IsNullOrEmpty(furnitureStatus))
@@ -80,13 +80,11 @@ namespace WebMVC.Controllers
                     queryParams.Add($"maxMoney={maxMoney.Value}");
 
                 var queryString = string.Join("&", queryParams);
-                var apiUrl = $"{_configuration["ApiBaseUrl"]}/api/accommodations";
-                if (!string.IsNullOrEmpty(queryString))
-                    apiUrl += $"?{queryString}";
+                string apiUrl = $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/accommodations";
 
                 // Call WebAPI
                 var response = await _httpClient.GetAsync(apiUrl);
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonContent = await response.Content.ReadAsStringAsync();
@@ -136,8 +134,10 @@ namespace WebMVC.Controllers
                 // Log error and return empty list
                 ViewBag.HasSearched = false;
                 ViewBag.ErrorMessage = "Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.";
-                return View(new List<AccommodationIndexViewModel>());
+                Console.WriteLine($"Error fetching accommodations: {ex.Message}");
             }
+            return View(new List<AccommodationIndexViewModel>());
+
         }
 
         [HttpPost]

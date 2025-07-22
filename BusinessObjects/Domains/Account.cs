@@ -36,6 +36,10 @@ public partial class Account
 
     public bool? TwoFactorEnabled { get; set; }
 
+    public string? AuthenticatorSecretKey { get; set; }
+
+    public string? RecoveryCodesJson { get; set; }
+
     public virtual ICollection<Accommodation> Accommodations { get; set; } = new List<Accommodation>();
 
     public virtual ICollection<Conversation> ConversationReceivers { get; set; } = new List<Conversation>();

@@ -1,0 +1,42 @@
+@model BusinessObjects.Dtos.Auth.TwoFactorLoginDto
+
+@{
+    ViewData["Title"] = "Xác thực 2 yếu tố";
+}
+
+<div class="container d-flex align-items-center justify-content-center min-vh-100">
+    <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%; border-radius: 16px;">
+        <div class="text-center mb-4">
+            <div class="mb-2" style="font-size: 40px;">🔐</div>
+            <h3 class="mb-1 text-primary">Xác thực 2 yếu tố</h3>
+            <p class="text-muted" style="font-size: 14px;">Nhập mã từ ứng dụng Authenticator</p>
+        </div>
+
+        <form asp-action="TwoFactorVerification" method="post" asp-controller="Auth" novalidate>
+
+
+            <div class="form-group mb-3">
+                <label asp-for="Code" class="form-label">Mã xác thực</label>
+                <input asp-for="Code" class="form-control text-center fw-bold" placeholder="000000" maxlength="6"
+                    autocomplete="off" inputmode="numeric" pattern="[0-9]{6}" />
+                <span asp-validation-for="Code" class="text-danger small"></span>
+            </div>
+
+            <input type="hidden" asp-for="Email" />
+
+            <div class="form-group mb-3 text-center">
+                <button type="submit" class="btn btn-primary px-4">Xác thực</button>
+            </div>
+        </form>
+
+        <div class="text-center mt-3">
+            <a href="/Auth/Login" class="text-decoration-none">← Quay lại đăng nhập</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -10,6 +10,7 @@ namespace Services.Interfaces
     public interface IAccountService
     {
         Task<Account> GetAccountByEmailAsync(string email);
+        Task<Account> GetAccountByIdAsync(int id);
         Task<IEnumerable<Account>> GetAllAccountsAsync();
         Task<bool> UpdateAccountAsync(int id, Account updatedAccount);
         Task<bool> DeleteAccountAsync(int id);

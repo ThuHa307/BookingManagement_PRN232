@@ -42,5 +42,10 @@ namespace Services.Implementations
 
         public async Task<IEnumerable<Account>> GetAllAccountsAsync()
         => await _accountRepository.GetAllAsync();
+
+        public async Task<Account> GetAccountByIdAsync(int id)
+        {
+            return await _accountRepository.GetByIdAsync(id);
+        }
     }
 }

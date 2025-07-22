@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace BusinessObjects.Dtos.Auth
 {
-    public class RefreshTokenRequestDto
+    public class TwoFactorRecoveryCodeLoginDto
     {
-        [Required]
-        public string? RefreshToken { get; set; }
-        [Required]
-        public string? Email { get; set; }
+        [Required(ErrorMessage = "Recovery code is required.")]
+        public string RecoveryCode { get; set; } = null!;
     }
 }

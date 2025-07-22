@@ -19,14 +19,15 @@
     <link rel="icon" type="image/png" href="~/images/blue-house-logo.png">
 </head>
 
-@await Component.InvokeAsync("ChatBoxAI")
-@RenderSection("script", required: false)
-@RenderSection("Styles", required: false)
+
 
 
 <body data-spy="scroll" data-target=".site-navbar-target" data-offset="300">
     @Html.Partial("_Header")
     @RenderBody()
+    @await Component.InvokeAsync("ChatBoxAI")
+    @RenderSection("script", required: false)
+    @RenderSection("Styles", required: false)
     @Html.Partial("_Footer")
 
     <!-- loader -->

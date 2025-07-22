@@ -18,7 +18,7 @@
                         <span class="text">bluedream.company@email.com</span>
                     </div>
                     <div class="col-md-5 pr-4 d-flex topper align-items-center text-lg-right justify-content-end">
-                        @if (Context.Session.GetString("AccountId") != null)
+                        @if (Context.Session.GetString("Email") != null)
                         {
                             <div class="dropdown">
                                 <a style="color: #000 !important" class="text dropdown-toggle" href="#" role="button"
@@ -49,7 +49,7 @@
                         else
                         {
                             <p class="mb-0 register-link">
-                                <a href="/Auth/SignUp" class="mr-3" style="color: #000 !important;">Đăng ký</a> |
+                                <a href="/Auth/Register" class="mr-3" style="color: #000 !important;">Đăng ký</a> |
                                 <a href="/Auth/Login" style="color: #000 !important;">Đăng nhập</a>
                             </p>
                         }

@@ -1,0 +1,53 @@
+@model WebMVC.Models.TwoFactorVerificationViewModel
+
+@{
+    ViewData["Title"] = "Cài đặt 2FA";
+}
+
+<div class="container d-flex align-items-center justify-content-center min-vh-100">
+    <div class="card shadow-sm p-4 rounded-3 w-100" style="max-width: 480px;">
+        <div class="text-center mb-3">
+            <h4 class="text-primary mb-1">Cài đặt xác thực hai yếu tố (2FA)</h4>
+            <p class="text-muted small">Thực hiện các bước sau để bật xác thực hai yếu tố</p>
+        </div>
+
+        <ol class="list-group list-group-numbered mb-4 small">
+            <li class="list-group-item border-0 px-2 py-1">
+                Tải ứng dụng <strong>Google Authenticator</strong> hoặc <strong>Microsoft Authenticator</strong> trên
+                điện thoại.
+            </li>
+            <li class="list-group-item border-0 px-2 py-1">
+                Quét mã QR bên dưới hoặc nhập khóa thủ công:
+                <div class="mt-2 text-center">
+                    <img src="@ViewBag.QrCodeUrl" alt="QR Code" class="img-thumbnail" style="max-width: 160px;" />
+                </div>
+                <p class="mt-2 text-center">
+                    <strong>Khóa:</strong>
+                    <code class="bg-light text-dark p-1 rounded">@ViewBag.SharedKey</code>
+                </p>
+            </li>
+            <li class="list-group-item border-0 px-2 py-1">
+                Sau khi thêm mã vào ứng dụng, nhập mã gồm 6 chữ số bên dưới để xác minh.
+            </li>
+        </ol>
+
+        <form asp-action="EnableTwoFactor" method="post" novalidate>
+            <div class="mb-3">
+                <label asp-for="Code" class="form-label small">Mã xác thực</label>
+                <input asp-for="Code" class="form-control text-center fw-bold" placeholder="000000" maxlength="6"
+                    autocomplete="off" inputmode="numeric" pattern="[0-9]{6}" />
+                <span asp-validation-for="Code" class="text-danger small"></span>
+            </div>
+
+            <div class="d-grid text-center">
+                <button type="submit" class="btn btn-primary px-4"> Bật 2FA</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
