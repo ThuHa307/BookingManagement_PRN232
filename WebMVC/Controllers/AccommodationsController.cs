@@ -184,7 +184,8 @@ namespace WebMVC.Controllers
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
                 // Call WebAPI
-                var apiUrl = $"{_configuration["ApiBaseUrl"]}/api/accommodations/search";
+                var apiUrl = $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/accommodations/search";
+
                 var response = await _httpClient.PostAsync(apiUrl, content);
 
                 if (response.IsSuccessStatusCode)
