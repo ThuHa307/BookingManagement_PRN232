@@ -10,6 +10,7 @@ using Repositories.Interfaces;
 using Services.Implementations;
 using Services.Interfaces;
 using RentNest.Infrastructure.DataAccess;
+using RentNest.Core.Configs;
 
 namespace WebAPI
 {
@@ -21,23 +22,43 @@ namespace WebAPI
             // ======= DATABASE =======
             builder.Services.AddDbContext<RentNestSystemContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.Configure<AzureOpenAISettings>(
+            builder.Configuration.GetSection("AzureOpenAISettings"));
             builder.Services.AddHttpContextAccessor();
             // ======= DEPENDENCY INJECTION =======
             // DAO
             builder.Services.AddScoped<AccommodationDAO>();
             builder.Services.AddScoped<PostDAO>();
+            builder.Services.AddScoped<PackagePricingDAO>();
+            builder.Services.AddScoped<TimeUnitPackageDAO>();
+            builder.Services.AddScoped<AmenitiesDAO>();
+            builder.Services.AddScoped<AccommodationDetailDAO>();
+            builder.Services.AddScoped<AccommodationImageDAO>();
+            builder.Services.AddScoped<AccommodationAmenityDAO>();
+            builder.Services.AddScoped<AccommodationTypeDAO>();
+            builder.Services.AddScoped<PostPackageDetailDAO>();
             // Repository
             builder.Services.AddScoped<IAccountRepository, AccountRepository>();
             builder.Services.AddScoped<Repositories.Interfaces.IAccommodationRepository, AccommodationRepository>();
             builder.Services.AddScoped<Repositories.Interfaces.IPostRepository, PostRepository>();
+            builder.Services.AddScoped<IPackagePricingRepository, PackagePricingRepository>();
+            builder.Services.AddScoped<IAmenitiesRepository, AmenitiesRepository>();
+            builder.Services.AddScoped<Repositories.Interfaces.IAccommodationTypeRepository, AccommodationTypeRepository>(); // <-- THÊM DÒNG NÀY
+            builder.Services.AddScoped<Repositories.Interfaces.ITimeUnitPackageRepository, TimeUnitPackageRepository>();
+
             // Service
             builder.Services.AddScoped<IPasswordHasherCustom, PasswordHasherCustom>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IAccountService, AccountService>();
             builder.Services.AddScoped<IAccommodationService, AccommodationService>();
             builder.Services.AddScoped<IPostService, PostService>();
-            // builder.Services.AddScoped<IAzureOpenAIService, AzureOpenAIService>();
+            builder.Services.AddScoped<IAzureOpenAIService, AzureOpenAIService>();
             builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+            builder.Services.AddScoped<IPackagePricingService, PackagePricingService>();
+            builder.Services.AddScoped<IAmenitiesSerivce, AmenitiesService>();
+            builder.Services.AddScoped<IAccommodationTypeService, AccommodationTypeService>(); // <-- THÊM DÒNG NÀY
+            builder.Services.AddScoped<ITimeUnitPackageService, TimeUnitPackageService>();
+            // ======= CONFIGURATION =======
             // --- JWT Authentication Configuration ---
             builder.Services.AddAuthentication(options =>
             {
@@ -102,7 +123,7 @@ namespace WebAPI
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
+            builder.Services.AddMemoryCache();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
