@@ -10,6 +10,7 @@ using Repositories.Interfaces;
 using Services.Implementations;
 using Services.Interfaces;
 using RentNest.Infrastructure.DataAccess;
+using DataAccessObjects;
 
 namespace WebAPI
 {
@@ -26,16 +27,20 @@ namespace WebAPI
             // DAO
             builder.Services.AddScoped<AccommodationDAO>();
             builder.Services.AddScoped<PostDAO>();
+            builder.Services.AddScoped<UserProfileDAO>();
             // Repository
             builder.Services.AddScoped<IAccountRepository, AccountRepository>();
             builder.Services.AddScoped<Repositories.Interfaces.IAccommodationRepository, AccommodationRepository>();
             builder.Services.AddScoped<Repositories.Interfaces.IPostRepository, PostRepository>();
+            builder.Services.AddScoped<Repositories.Interfaces.IUserProfileRepository, UserProfileRepository>();
+
             // Service
             builder.Services.AddScoped<IPasswordHasherCustom, PasswordHasherCustom>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IAccountService, AccountService>();
             builder.Services.AddScoped<IAccommodationService, AccommodationService>();
             builder.Services.AddScoped<IPostService, PostService>();
+            builder.Services.AddScoped<IUserProfileService, UserProfileService>();
             // builder.Services.AddScoped<IAzureOpenAIService, AzureOpenAIService>();
             builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             // --- JWT Authentication Configuration ---
@@ -101,7 +106,40 @@ namespace WebAPI
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+                  builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "WebAPI",
+                    Version = "v1"
+                });
+
+                // Thêm phần hỗ trợ JWT Bearer
+                c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Description = "Nhập JWT theo định dạng: Bearer {your token}"
+                });
+
+                c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+            });
 
             var app = builder.Build();
 
@@ -111,7 +149,7 @@ namespace WebAPI
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
+            app.UseStaticFiles();
             app.UseHttpsRedirection();
             app.UseCors("AllowFrontend");
             app.UseSession();

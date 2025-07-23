@@ -1,0 +1,364 @@
+﻿@model WebMVC.Models.ProfileViewModel
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Chỉnh sửa thông tin cá nhân";
+    bool isNewProfile = ViewBag.IsNewProfile ?? false;
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<section class="ftco-section contact-section ftco-no-pb" style="padding: 5em 0 !important">
+    <div class="container">
+        <div class="row justify-content-center pb-3">
+            <div class="col-md-10 heading-section text-center ftco-animate">
+                <span class="subheading">@(isNewProfile ? "Hoàn thiện hồ sơ" : "Chỉnh sửa thông tin")</span>
+                <h2 style="font-family: system-ui;" class="mb-4">Cập nhật thông tin cá nhân</h2>
+                <p class="text-muted">Vui lòng điền đầy đủ thông tin để có trải nghiệm tốt nhất.</p>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="bg-light p-4 p-md-5 rounded">
+
+                    <!-- Success/Error Messages -->
+                    @if (!string.IsNullOrEmpty(TempData["SuccessMessage"] as string))
+                    {
+                        <script>
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công!',
+                                text: '@Html.Raw(TempData["SuccessMessage"])',
+                                timer: 3000,
+                                showConfirmButton: false
+                            });
+                        </script>
+                    }
+
+                    @if (!string.IsNullOrEmpty(TempData["ErrorMessage"] as string))
+                    {
+                        <script>
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi!',
+                                text: '@Html.Raw(TempData["ErrorMessage"])'
+                            });
+                        </script>
+                    }
+
+                    <div class="row">
+                        <!-- Avatar Upload Section -->
+                        <div class="col-md-4 mb-4">
+                            <div class="text-center">
+                                <h5 class="mb-3">Ảnh đại diện</h5>
+
+                                <!-- Avatar Preview -->
+                                <div class="avatar-upload-container mb-3" id="avatarContainer">
+                                    @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                                    {
+                                        <!-- Có avatar: chỉ hiển thị ảnh -->
+                                        <img src="@Model.AvatarUrl" alt="Avatar" class="rounded-circle img-thumbnail"
+                                             style="width: 150px; height: 150px; object-fit: cover;" id="avatarPreview">
+                                    }
+                                    else
+                                    {
+                                        <!-- Không có avatar: chỉ hiển thị placeholder -->
+                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                                             style="width: 150px; height: 150px;" id="avatarPreview">
+                                            <i class="fas fa-user text-white" style="font-size: 4rem;"></i>
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Upload Avatar Form -->
+                                <form asp-controller="Profile" asp-action="UploadAvatarAjax" method="post" enctype="multipart/form-data" id="avatarUploadForm">
+                                    <div class="mb-3">
+                                        <input type="file" class="form-control-file" id="avatarFile" name="avatarFile"
+                                               accept="image/*" style="display: none;">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('avatarFile').click()">
+                                            <i class="fas fa-camera mr-1"></i>
+                                            @(string.IsNullOrEmpty(Model.AvatarUrl) ? "Thêm ảnh" : "Đổi ảnh")
+                                        </button>
+                                    </div>
+                                </form>
+
+                                @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                                {
+                                    <form asp-controller="Profile" asp-action="DeleteAvatar" method="post" style="display: inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                onclick="return confirm('Bạn có chắc muốn xóa ảnh đại diện?')">
+                                            <i class="fas fa-trash mr-1"></i>
+                                            Xóa ảnh
+                                        </button>
+                                    </form>
+                                }
+
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        Định dạng: JPG, PNG, GIF<br>
+                                        Kích thước tối đa: 5MB
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Profile Information Form -->
+                        <div class="col-md-8">
+                            <form asp-controller="Profile" asp-action="Edit" method="post" novalidate>
+                                @Html.AntiForgeryToken()
+
+                                <div class="row">
+                                    <!-- First Name -->
+                                    <div class="col-md-6 form-group">
+                                        <label asp-for="FirstName" class="form-label">
+                                            <i class="fas fa-user mr-1"></i>
+                                            @Html.DisplayNameFor(m => m.FirstName)
+                                        </label>
+                                        <input asp-for="FirstName" class="form-control" placeholder="Nhập họ của bạn">
+                                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                                    </div>
+
+                                    <!-- Last Name -->
+                                    <div class="col-md-6 form-group">
+                                        <label asp-for="LastName" class="form-label">
+                                            <i class="fas fa-user mr-1"></i>
+                                            @Html.DisplayNameFor(m => m.LastName)
+                                        </label>
+                                        <input asp-for="LastName" class="form-control" placeholder="Nhập tên của bạn">
+                                        <span asp-validation-for="LastName" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- Phone Number -->
+                                    <div class="col-md-6 form-group">
+                                        <label asp-for="PhoneNumber" class="form-label">
+                                            <i class="fas fa-phone mr-1"></i>
+                                            @Html.DisplayNameFor(m => m.PhoneNumber)
+                                        </label>
+                                        <input asp-for="PhoneNumber" class="form-control" placeholder="0123456789" type="tel">
+                                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                    </div>
+
+                                    <!-- Gender -->
+                                    <div class="col-md-6 form-group">
+                                        <label asp-for="Gender" class="form-label">
+                                            <i class="fas fa-venus-mars mr-1"></i>
+                                            @Html.DisplayNameFor(m => m.Gender)
+                                        </label>
+                                        <select asp-for="Gender" class="form-control">
+                                            <option value="">-- Chọn giới tính --</option>
+                                            <option value="M">Nam</option>
+                                            <option value="F">Nữ</option>
+                                            <option value="O">Khác</option>
+                                        </select>
+                                        <span asp-validation-for="Gender" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- Date of Birth -->
+                                    <div class="col-md-6 form-group">
+                                        <label asp-for="DateOfBirth" class="form-label">
+                                            <i class="fas fa-birthday-cake mr-1"></i>
+                                            @Html.DisplayNameFor(m => m.DateOfBirth)
+                                        </label>
+                                        <input asp-for="DateOfBirth" class="form-control" type="date">
+                                        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                                    </div>
+
+                                    <!-- Occupation -->
+                                    <div class="col-md-6 form-group">
+                                        <label asp-for="Occupation" class="form-label">
+                                            <i class="fas fa-briefcase mr-1"></i>
+                                            @Html.DisplayNameFor(m => m.Occupation)
+                                        </label>
+                                        <input asp-for="Occupation" class="form-control" placeholder="Nghề nghiệp của bạn">
+                                        <span asp-validation-for="Occupation" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Address -->
+                                <div class="form-group">
+                                    <label asp-for="Address" class="form-label">
+                                        <i class="fas fa-map-marker-alt mr-1"></i>
+                                        @Html.DisplayNameFor(m => m.Address)
+                                    </label>
+                                    <textarea asp-for="Address" class="form-control" rows="3"
+                                              placeholder="Địa chỉ hiện tại của bạn"></textarea>
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="form-group mt-4">
+                                    <button type="submit" class="btn btn-primary mr-2">
+                                        <i class="fas fa-save mr-1"></i>
+                                        @(isNewProfile ? "Hoàn thiện hồ sơ" : "Cập nhật thông tin")
+                                    </button>
+                                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times mr-1"></i>
+                                        Hủy bỏ
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Global config
+        window.APP_CONFIG = {
+            apiBaseUrl: '@ViewBag.ApiBaseUrl'
+        };
+
+        // Avatar Upload với AJAX
+        document.getElementById('avatarFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: 'Chỉ chấp nhận file ảnh (.jpg, .jpeg, .png, .gif)'
+                });
+                return;
+            }
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: 'Kích thước file không được vượt quá 5MB'
+                });
+                return;
+            }
+
+            // Preview image NGAY KHI CHỌN FILE
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const avatarContainer = document.getElementById('avatarContainer');
+                // Thay thế hoàn toàn bằng ảnh preview
+                avatarContainer.innerHTML = `
+                    <img src="${e.target.result}" alt="Avatar Preview" class="rounded-circle img-thumbnail"
+                         style="width: 150px; height: 150px; object-fit: cover;" id="avatarPreview">
+                `;
+            };
+            reader.readAsDataURL(file);
+
+            // Upload via AJAX
+            const formData = new FormData();
+            formData.append('avatarFile', file);
+
+            // Show loading
+            Swal.fire({
+                title: 'Đang upload...',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                willOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            fetch('@Url.Action("UploadAvatarAjax", "Profile")', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                Swal.close();
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    // Update avatar preview
+                    const preview = document.getElementById('avatarPreview');
+                    const placeholder = document.getElementById('avatarPlaceholder');
+
+                    // Tạo full URL cho avatar
+                    const apiBaseUrl = window.APP_CONFIG.apiBaseUrl;
+                    const fullAvatarUrl = data.avatarUrl.startsWith('http') ?
+                                         data.avatarUrl :
+                                         apiBaseUrl + data.avatarUrl;
+
+                    // Thay thế nội dung preview bằng ảnh mới
+                    preview.innerHTML = `<img src="${fullAvatarUrl}" alt="Avatar" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;" onerror="this.style.display='none'; document.getElementById('avatarPlaceholder').style.display='flex';">`;
+                    preview.style.display = 'block';
+
+                    // Ẩn placeholder nếu có
+                    if (placeholder) {
+                        placeholder.style.display = 'none';
+                    }
+
+                    // Show delete button if not exists
+                    const deleteForm = document.querySelector('form[action*="DeleteAvatar"]');
+                    if (!deleteForm) {
+                        location.reload(); // Reload để hiển thị nút xóa
+                    }
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: data.message
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: 'Có lỗi xảy ra khi upload ảnh'
+                });
+                console.error('Error:', error);
+            });
+        });
+
+        // Validate form before submit
+        document.querySelector('form[asp-action="Edit"]').addEventListener('submit', function(e) {
+            const firstName = document.querySelector('input[name="FirstName"]').value.trim();
+            const lastName = document.querySelector('input[name="LastName"]').value.trim();
+
+            if (!firstName && !lastName) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Thông báo',
+                    text: 'Vui lòng nhập ít nhất họ hoặc tên của bạn'
+                });
+                return false;
+            }
+        });
+
+        // Auto-format phone number
+        document.querySelector('input[name="PhoneNumber"]').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+            if (value.length > 11) {
+                value = value.substring(0, 11); // Limit to 11 digits
+            }
+            e.target.value = value;
+        });
+    </script>
+}
