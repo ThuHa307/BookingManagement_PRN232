@@ -90,10 +90,7 @@
             </ul>
         </div>
 
-        @{
-            var isLandlord = User.Identity!.IsAuthenticated && User.IsInRole(UserRoles.Landlord);
-        }
-        @if (isLandlord)
+        @if (Context.Session.GetString("Role") == "L")
         {
             <div class="ml-3 d-none d-lg-block">
                 <a href="/nguoi-cho-thue/dang-tin" class="btn btn-primary px-4 py-2"
