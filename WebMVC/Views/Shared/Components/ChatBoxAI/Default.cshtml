@@ -49,7 +49,7 @@
             showTypingIndicator();
 
             try {
-                const res = await fetch('/api/chatbot/ask', {
+                const res = await fetch('/chatbot/ask', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: question })

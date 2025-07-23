@@ -14,7 +14,11 @@ namespace WebMVC
             // ✅ Đăng ký HttpClient & các API services cho MVC gọi API bên ngoài
             builder.Services.AddScoped<AccountApiService>();
             builder.Services.AddScoped<AuthApiService>();
+<<<<<<< HEAD
             builder.Services.AddScoped<ProfileApiService>();
+=======
+            builder.Services.AddScoped<PostApiService>();
+>>>>>>> ee4833d911c2364b26aae66260d8b12dfdee426a
             builder.Services.AddHttpClient();
             builder.Services.AddHttpContextAccessor();
             // ✅ Session để lưu token
@@ -33,6 +37,7 @@ namespace WebMVC
                      options.AccessDeniedPath = "/Auth/AccessDenied";
                  });
             builder.Services.AddControllersWithViews();
+
 
             var app = builder.Build();
 
