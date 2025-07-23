@@ -3,6 +3,7 @@ using RentNest.Web.Models;
 using WebMVC.Models;
 using System.Text.Json;
 using System.Text;
+using Services.Interfaces;
 
 namespace WebMVC.Controllers
 {
@@ -81,6 +82,8 @@ namespace WebMVC.Controllers
 
                 var queryString = string.Join("&", queryParams);
                 string apiUrl = $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/accommodations";
+                if (!string.IsNullOrEmpty(queryString))
+                    apiUrl += $"?{queryString}";
 
                 // Call WebAPI
                 var response = await _httpClient.GetAsync(apiUrl);
@@ -246,6 +249,28 @@ namespace WebMVC.Controllers
                 TempData["ErrorMessage"] = "Có lỗi xảy ra khi tìm kiếm. Vui lòng thử lại sau.";
                 return RedirectToAction("Index", "Accommodations");
             }
+        }
+
+        [HttpGet("chi-tiet/{postId:int}", Name = "PostDetailRoute")]
+        public async Task<IActionResult> Detail(int postId)
+        {
+            var apiUrl = $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/v1/posts/{postId}/detail";
+            var response = await _httpClient.GetAsync(apiUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return Content("Không tìm thấy dữ liệu chi tiết");
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var viewModel = JsonSerializer.Deserialize<AccommodationDetailViewModel>(json, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            ViewData["Address"] = viewModel?.Address ?? "";
+
+            return View(viewModel);
         }
     }
 }
