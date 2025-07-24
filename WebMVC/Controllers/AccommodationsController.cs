@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BusinessObjects.Dtos;
+using Microsoft.AspNetCore.Mvc;
 using RentNest.Web.Models;
-using WebMVC.Models;
-using System.Text.Json;
 using System.Text;
+using System.Text.Json;
+using WebMVC.Models;
 
 
 namespace WebMVC.Controllers
@@ -96,6 +97,11 @@ namespace WebMVC.Controllers
                         PropertyNameCaseInsensitive = true
                     };
                     var apiResponse = JsonSerializer.Deserialize<AccommodationApiResponse>(jsonContent, options);
+                    int accountId = HttpContext.Session.GetInt32("AccountId") ?? 0;
+                    var favoriteList = await _httpClient.GetFromJsonAsync<List<FavoritePostDto>>(
+                        $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/FavoritePost/account/{accountId}");
+
+                    var favoritePostIds = favoriteList?.Select(f => f.PostId).ToHashSet() ?? new HashSet<int>();
 
                     // Convert AccommodationDto to AccommodationIndexViewModel
                     var model = apiResponse.Data.Select(dto => new AccommodationIndexViewModel
@@ -119,7 +125,136 @@ namespace WebMVC.Controllers
                         StartDate = dto.StartDate,
                         EndDate = dto.EndDate,
                         ListImages = dto.ListImages,
-                        PhoneNumber = dto.PhoneNumber
+                        PhoneNumber = dto.PhoneNumber,
+                        IsFavorite = favoritePostIds.Contains(dto.Id)
+                    }).ToList();
+
+                    ViewBag.HasSearched = apiResponse.HasSearched;
+                    return View(model);
+                }
+                else
+                {
+                    // Fallback to empty list if API fails
+                    ViewBag.HasSearched = false;
+                    return View(new List<AccommodationIndexViewModel>());
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error and return empty list
+                ViewBag.HasSearched = false;
+                ViewBag.ErrorMessage = "Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.";
+                Console.WriteLine($"Error fetching accommodations: {ex.Message}");
+            }
+            return View(new List<AccommodationIndexViewModel>());
+
+        }
+        public async Task<IActionResult> FavoritePost(string? roomType, string? furnitureStatus, int? bedroomCount, int? bathroomCount)
+        {
+            try
+            {
+                // Lấy dữ liệu từ TempData
+                string provinceName = TempData["provinceName"] as string;
+                string districtName = TempData["districtName"] as string;
+                string wardName = TempData["wardName"] as string;
+                double? area = double.TryParse(TempData["area"] as string, out var a) ? a : null;
+                decimal? minMoney = decimal.TryParse(TempData["minMoney"] as string, out var min) ? min : null;
+                decimal? maxMoney = decimal.TryParse(TempData["maxMoney"] as string, out var max) ? max : null;
+
+                // Set ViewBag data
+                ViewBag.ProvinceName = provinceName;
+                ViewBag.DistrictName = districtName;
+                ViewBag.WardName = wardName;
+                ViewBag.Area = area;
+                ViewBag.MinMoney = minMoney;
+                ViewBag.MaxMoney = maxMoney;
+
+                // Kiểm tra xem có search results từ TempData không
+                var roomListJson = TempData["RoomList"] as string;
+                var hasSearched = TempData["HasSearched"] as bool?;
+
+                if (!string.IsNullOrEmpty(roomListJson) && hasSearched == true)
+                {
+                    // Deserialize search results từ TempData
+                    var searchResults = JsonSerializer.Deserialize<List<AccommodationIndexViewModel>>(roomListJson, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                    ViewBag.HasSearched = true;
+                    return View(searchResults);
+                }
+
+                // Build query string for API call
+                var queryParams = new List<string>();
+
+                if (!string.IsNullOrEmpty(roomType))
+                    queryParams.Add($"roomType={Uri.EscapeDataString(roomType)}");
+                if (!string.IsNullOrEmpty(furnitureStatus))
+                    queryParams.Add($"furnitureStatus={Uri.EscapeDataString(furnitureStatus)}");
+                if (bedroomCount.HasValue)
+                    queryParams.Add($"bedroomCount={bedroomCount.Value}");
+                if (bathroomCount.HasValue)
+                    queryParams.Add($"bathroomCount={bathroomCount.Value}");
+                if (!string.IsNullOrEmpty(provinceName))
+                    queryParams.Add($"provinceName={Uri.EscapeDataString(provinceName)}");
+                if (!string.IsNullOrEmpty(districtName))
+                    queryParams.Add($"districtName={Uri.EscapeDataString(districtName)}");
+                if (!string.IsNullOrEmpty(wardName))
+                    queryParams.Add($"wardName={Uri.EscapeDataString(wardName)}");
+                if (area.HasValue)
+                    queryParams.Add($"area={area.Value}");
+                if (minMoney.HasValue)
+                    queryParams.Add($"minMoney={minMoney.Value}");
+                if (maxMoney.HasValue)
+                    queryParams.Add($"maxMoney={maxMoney.Value}");
+
+                var queryString = string.Join("&", queryParams);
+                string apiUrl = $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/accommodations";
+                if (!string.IsNullOrEmpty(queryString))
+                    apiUrl += $"?{queryString}";
+
+                // Call WebAPI
+                var response = await _httpClient.GetAsync(apiUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonContent = await response.Content.ReadAsStringAsync();
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    var apiResponse = JsonSerializer.Deserialize<AccommodationApiResponse>(jsonContent, options);
+                    int accountId = HttpContext.Session.GetInt32("AccountId") ?? 0;
+                    var favoriteList = await _httpClient.GetFromJsonAsync<List<FavoritePostDto>>(
+                        $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/FavoritePost/account/{accountId}");
+
+                    var favoritePostIds = favoriteList?.Select(f => f.PostId).ToHashSet() ?? new HashSet<int>();
+
+                    // Convert AccommodationDto to AccommodationIndexViewModel
+                    var model = apiResponse.Data.Select(dto => new AccommodationIndexViewModel
+                    {
+                        Id = dto.Id,
+                        Status = dto.Status,
+                        Title = dto.Title,
+                        Price = dto.Price,
+                        Address = dto.Address,
+                        Area = dto.Area,
+                        BathroomCount = dto.BathroomCount,
+                        BedroomCount = dto.BedroomCount,
+                        ImageUrl = dto.ImageUrl,
+                        CreatedAt = dto.CreatedAt,
+                        DistrictName = dto.DistrictName,
+                        ProvinceName = dto.ProvinceName,
+                        WardName = dto.WardName,
+                        PackageTypeName = dto.PackageTypeName,
+                        TimeUnitName = dto.TimeUnitName,
+                        TotalPrice = dto.TotalPrice,
+                        StartDate = dto.StartDate,
+                        EndDate = dto.EndDate,
+                        ListImages = dto.ListImages,
+                        PhoneNumber = dto.PhoneNumber,
+                        IsFavorite = favoritePostIds.Contains(dto.Id)
                     }).ToList();
 
                     ViewBag.HasSearched = apiResponse.HasSearched;

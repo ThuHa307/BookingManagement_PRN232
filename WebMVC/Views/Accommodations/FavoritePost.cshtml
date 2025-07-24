@@ -30,7 +30,7 @@
 				<input type="hidden" name="WardId" id="wardId" />
 				<div class="row g-2 align-items-end">
 					<div class="col-md">
-						<label for="provinceDropdown" class="form-label text-white fw-semibold">
+						<label for="provinceDropdown" class="form-label text-dark fw-semibold">
 							Tỉnh/Thành phố <span class="text-danger">*</span>
 						</label>
 						<select id="provinceDropdown" class="form-control text-white bg-transparent border-light" required>
@@ -40,7 +40,7 @@
 						<div class="invalid-feedback">Vui lòng chọn tỉnh/thành phố.</div>
 					</div>
 					<div class="col-md">
-						<label for="districtDropdown" class="form-label text-white fw-semibold">
+						<label for="districtDropdown" class="form-label text-dark fw-semibold">
 							Quận/Huyện <span class="text-danger">*</span>
 						</label>
 						<select id="districtDropdown" class="form-control text-white bg-transparent border-light" required>
@@ -51,7 +51,7 @@
 					</div>
 
 					<div class="col-md">
-						<label for="wardDropdown" class="form-label text-white fw-semibold">
+						<label for="wardDropdown" class="form-label text-dark fw-semibold">
 							Phường/Xã
 						</label>
 						<select id="wardDropdown" class="form-control text-white bg-transparent border-light">
@@ -62,17 +62,17 @@
 					</div>
 
 					<div class="col-md">
-						<label for="area" class="form-label text-white">Diện tích (m²)</label>
+						<label for="area" class="form-label text-dark">Diện tích (m²)</label>
 						<input type="number" id="area" name="area" value="@ViewBag.Area" min="0" step="0.5" class="form-control text-white bg-transparent border-light" placeholder="Diện tích (m²)">
 					</div>
 
 					<div class="col-md">
-						<label for="minMoney" class="form-label text-white">Giá thấp nhất</label>
+						<label for="minMoney" class="form-label text-dark ">Giá thấp nhất</label>
 						<input type="number" id="minMoney" name="minMoney" min="0" step="10000" class="form-control text-white bg-transparent border-light" placeholder="Tối thiểu (VNĐ)">
 					</div>
 
 					<div class="col-md">
-						<label for="maxMoney" class="form-label text-white">Giá cao nhất</label>
+						<label for="maxMoney" class="form-label text-dark">Giá cao nhất</label>
 						<input type="number" id="maxMoney" name="maxMoney" min="0" step="10000" class="form-control text-white bg-transparent border-light" placeholder="Tối đa (VNĐ)">
 					</div>
 
@@ -156,7 +156,7 @@
 				else
 				{
 					<div class="row">
-						@foreach (var item in Model)
+						@foreach (var item in Model.Where(i => i.IsFavorite))
 						{
 							var postedAgo = item.CreatedAt.HasValue
 							? (DateTime.Now - item.CreatedAt.Value) switch
@@ -282,21 +282,12 @@
 															id="phoneBtn-@item.Id">
 														<i class="fa fa-phone"></i> @maskedPhone
 													</button>
-												}
-												@if (item.IsFavorite)
-												{
+												}											
 													<form asp-controller="FavoritePost" asp-action="Delete" method="post">
 														<input type="hidden" name="postId" value="@item.Id" />
 														<button type="submit" class="btn btn-link" style="color: red;">❤️ Bỏ yêu thích</button>
 													</form>
-												}
-												else
-												{
-													<form asp-controller="FavoritePost" asp-action="Add" method="post">
-														<input type="hidden" name="postId" value="@item.Id" />
-														<button type="submit" class="btn btn-link" style="color: gray;">🤍 Yêu thích</button>
-													</form>
-												}
+											
 
 
 
