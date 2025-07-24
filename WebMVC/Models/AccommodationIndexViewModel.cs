@@ -22,5 +22,6 @@
         public DateTime? EndDate { get; set; }
         public List<string> ListImages { get; set; }
         public string? PhoneNumber { get; set; }
+        public bool IsFavorite { get; set; }
     }
 }

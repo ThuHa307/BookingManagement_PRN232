@@ -16,6 +16,7 @@ using DataAccessObjects;
 
 using DataAccessObjects;
 using RentNest.Core.Configs;
+using DataAccessObjects.DataAccessLayer.DAO;
 
 
 namespace WebAPI
@@ -47,7 +48,7 @@ namespace WebAPI
             builder.Services.AddScoped<AccommodationAmenityDAO>();
             builder.Services.AddScoped<AccommodationTypeDAO>();
             builder.Services.AddScoped<PostPackageDetailDAO>();
-
+            builder.Services.AddScoped<FavoritePostDAO>();
             builder.Services.AddScoped<AccountDAO>();
             builder.Services.AddScoped<UserProfileDAO>();
 
@@ -55,7 +56,7 @@ namespace WebAPI
             builder.Services.AddScoped<IAccountRepository, AccountRepository>();
             builder.Services.AddScoped<Repositories.Interfaces.IAccommodationRepository, AccommodationRepository>();
             builder.Services.AddScoped<Repositories.Interfaces.IPostRepository, PostRepository>();
-
+            builder.Services.AddScoped<IFavoritePostRepository, FavoritePostRepository>();
             builder.Services.AddScoped<Repositories.Interfaces.IUserProfileRepository, UserProfileRepository>();
 
             builder.Services.AddScoped<IPackagePricingRepository, PackagePricingRepository>();
@@ -70,7 +71,7 @@ namespace WebAPI
             builder.Services.AddScoped<IAccountService, AccountService>();
             builder.Services.AddScoped<IAccommodationService, AccommodationService>();
             builder.Services.AddScoped<IPostService, PostService>();
-
+            builder.Services.AddScoped<IFavoritePostService, FavoritePostService>();
             builder.Services.AddScoped<IUserProfileService, UserProfileService>();
             // builder.Services.AddScoped<IAzureOpenAIService, AzureOpenAIService>();
 

@@ -14,10 +14,15 @@ namespace WebMVC
             // ✅ Đăng ký HttpClient & các API services cho MVC gọi API bên ngoài
             builder.Services.AddScoped<AccountApiService>();
             builder.Services.AddScoped<AuthApiService>();
-
+            builder.Services.AddScoped<FavoritePostApiService>();
             builder.Services.AddScoped<ProfileApiService>();
             builder.Services.AddScoped<PasswordApiService>();
             builder.Services.AddScoped<PostApiService>();
+            var apiBaseUrl = builder.Configuration["ApiSettings:ApiBaseUrl"];
+            builder.Services.AddHttpClient<FavoritePostApiService>(client =>
+            {
+                client.BaseAddress = new Uri(apiBaseUrl);
+            });
 
             builder.Services.AddHttpClient();
             builder.Services.AddHttpContextAccessor();
