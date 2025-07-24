@@ -1,0 +1,218 @@
+﻿@model WebMVC.Models.ProfileViewModel
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+    bool isNewProfile = ViewBag.IsNewProfile ?? false;
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<section class="ftco-section contact-section ftco-no-pb" style="padding: 5em 0 !important">
+    <div class="container">
+        <div class="row justify-content-center pb-3">
+            <div class="col-md-10 heading-section text-center ftco-animate">
+                <span class="subheading">Thông tin cá nhân</span>
+                <h2 style="font-family: system-ui;" class="mb-4">Hồ sơ của bạn</h2>
+                @if (isNewProfile)
+                {
+                    <p class="text-muted">Vui lòng hoàn thiện thông tin cá nhân để sử dụng dịch vụ tốt hơn.</p>
+                }
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="bg-light p-4 p-md-5 rounded">
+
+                    <!-- Success/Error Messages -->
+                    @if (!string.IsNullOrEmpty(TempData["SuccessMessage"] as string))
+                    {
+                        <script>
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công!',
+                                text: '@Html.Raw(TempData["SuccessMessage"])',
+                                timer: 3000,
+                                showConfirmButton: false
+                            });
+                        </script>
+                    }
+
+                    @if (!string.IsNullOrEmpty(TempData["ErrorMessage"] as string))
+                    {
+                        <script>
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi!',
+                                text: '@Html.Raw(TempData["ErrorMessage"])'
+                            });
+                        </script>
+                    }
+
+                    <!-- Profile Content -->
+                    <div class="row">
+                        <!-- Avatar Section -->
+                        <div class="col-md-4 text-center mb-4">
+                            <div class="profile-avatar-section">
+                                @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                                {
+                                    <img src="@Model.AvatarUrl" alt="Avatar" class="rounded-circle img-thumbnail"
+                                         style="width: 150px; height: 150px; object-fit: cover;" id="avatarPreview">
+                                }
+                                else
+                                {
+                                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                                         style="width: 150px; height: 150px;" id="avatarPreview">
+                                        <i class="fas fa-user text-white" style="font-size: 4rem;"></i>
+                                    </div>
+                                }
+
+                                @if (isNewProfile)
+                                {
+                                    <p class="text-muted">Chưa có ảnh đại diện</p>
+                                }
+                                else if (Model.CreatedAt.HasValue)
+                                {
+                                    <p class="text-muted small">Tham gia từ: @Model.CreatedAt.Value.ToString("dd/MM/yyyy")</p>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Profile Information -->
+                        <div class="col-md-8">
+                            @if (isNewProfile)
+                            {
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    <strong>Chào mừng!</strong> Hồ sơ của bạn chưa được hoàn thiện.
+                                    <a href="@Url.Action("Edit")" class="alert-link">Nhấn vào đây để cập nhật thông tin</a>
+                                </div>
+                            }
+
+                            <div class="profile-info">
+                                <div class="row mb-3">
+                                    <div class="col-sm-4"><strong>Họ và tên:</strong></div>
+                                    <div class="col-sm-8">
+                                        @if (!string.IsNullOrEmpty(Model.FirstName) || !string.IsNullOrEmpty(Model.LastName))
+                                        {
+                                            <span>@Model.FirstName @Model.LastName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa cập nhật</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-sm-4"><strong>Email:</strong></div>
+                                    <div class="col-sm-8">
+                                        <span>@Context.Session.GetString("Email")</span>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-sm-4"><strong>Giới tính:</strong></div>
+                                    <div class="col-sm-8">
+                                        @if (!string.IsNullOrEmpty(Model.Gender))
+                                        {
+                                            <span>
+                                                @(Model.Gender == "M" ? "Nam" : Model.Gender == "F" ? "Nữ" : "Khác")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa cập nhật</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-sm-4"><strong>Ngày sinh:</strong></div>
+                                    <div class="col-sm-8">
+                                        @if (Model.DateOfBirth.HasValue)
+                                        {
+                                            <span>@Model.DateOfBirth.Value.ToString("dd/MM/yyyy")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa cập nhật</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-sm-4"><strong>Số điện thoại:</strong></div>
+                                    <div class="col-sm-8">
+                                        @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                                        {
+                                            <span>@Model.PhoneNumber</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa cập nhật</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-sm-4"><strong>Nghề nghiệp:</strong></div>
+                                    <div class="col-sm-8">
+                                        @if (!string.IsNullOrEmpty(Model.Occupation))
+                                        {
+                                            <span>@Model.Occupation</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa cập nhật</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-sm-4"><strong>Địa chỉ:</strong></div>
+                                    <div class="col-sm-8">
+                                        @if (!string.IsNullOrEmpty(Model.Address))
+                                        {
+                                            <span>@Model.Address</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa cập nhật</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                @if (Model.UpdatedAt.HasValue)
+                                {
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Cập nhật lần cuối:</strong></div>
+                                        <div class="col-sm-8">
+                                            <span class="text-muted small">@Model.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="mt-4">
+                                <a href="@Url.Action("Edit")" class="btn btn-primary mr-2">
+                                    <i class="fas fa-edit mr-1"></i>
+                                    @(isNewProfile ? "Hoàn thiện thông tin" : "Chỉnh sửa")
+                                </a>
+                                <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left mr-1"></i>
+                                    Quay lại trang chủ
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+}

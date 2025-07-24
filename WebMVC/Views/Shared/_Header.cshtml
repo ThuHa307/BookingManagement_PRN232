@@ -26,7 +26,10 @@
                                     Xin chào, @(Context.Session.GetString("UserName") ?? Context.Session.GetString("Email"))
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                                    <a class="dropdown-item" href="/Account/Profile">Thông tin cá nhân</a>
+                                    <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
+                                        <i class="fas fa-user mr-2"></i>
+                                        Thông tin cá nhân
+                                    </a>
                                     <a class="dropdown-item" href="/quan-ly-tin">Quản lý tin</a>
                                     <a class="dropdown-item" href="/tro-chuyen">Trò chuyện</a>
                                     <a class="dropdown-item" href="/bai-viet-yeu-thich">Bài viết yêu thích</a>
@@ -35,9 +38,10 @@
                                         var email = Context.Session.GetString("Email");
                                         if (email != null)
                                         {
-                                            <a class="dropdown-item" asp-controller="Account" asp-action="ConfirmEmail"
-                                                method="post">Đổi mật
-                                                khẩu</a>
+                                            <a class="dropdown-item" asp-controller="Password" asp-action="ChangePassword">
+                                                <i class="fas fa-key mr-2"></i>
+                                                Đổi mật khẩu
+                                            </a>
                                             <div class="dropdown-divider"></div>
                                             <a class="dropdown-item text-danger" href="/Auth/Logout">Đăng xuất</a>
                                         }
