@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BusinessObjects.Dtos;
+using Microsoft.AspNetCore.Mvc;
 using RentNest.Web.Models;
-using WebMVC.Models;
-using System.Text.Json;
 using System.Text;
+using System.Text.Json;
+using WebMVC.Models;
 
 
 namespace WebMVC.Controllers
@@ -96,6 +97,11 @@ namespace WebMVC.Controllers
                         PropertyNameCaseInsensitive = true
                     };
                     var apiResponse = JsonSerializer.Deserialize<AccommodationApiResponse>(jsonContent, options);
+                    int accountId = HttpContext.Session.GetInt32("AccountId") ?? 0;
+                    var favoriteList = await _httpClient.GetFromJsonAsync<List<FavoritePostDto>>(
+                        $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/FavoritePost/account/{accountId}");
+
+                    var favoritePostIds = favoriteList?.Select(f => f.PostId).ToHashSet() ?? new HashSet<int>();
 
                     // Convert AccommodationDto to AccommodationIndexViewModel
                     var model = apiResponse.Data.Select(dto => new AccommodationIndexViewModel
@@ -119,7 +125,8 @@ namespace WebMVC.Controllers
                         StartDate = dto.StartDate,
                         EndDate = dto.EndDate,
                         ListImages = dto.ListImages,
-                        PhoneNumber = dto.PhoneNumber
+                        PhoneNumber = dto.PhoneNumber,
+                        IsFavorite = favoritePostIds.Contains(dto.Id)
                     }).ToList();
 
                     ViewBag.HasSearched = apiResponse.HasSearched;
