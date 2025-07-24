@@ -10,11 +10,10 @@ using Repositories.Interfaces;
 using Services.Implementations;
 using Services.Interfaces;
 using RentNest.Infrastructure.DataAccess;
-<<<<<<< HEAD
+
 using DataAccessObjects;
-=======
 using RentNest.Core.Configs;
->>>>>>> ee4833d911c2364b26aae66260d8b12dfdee426a
+
 
 namespace WebAPI
 {
@@ -33,9 +32,9 @@ namespace WebAPI
             // DAO
             builder.Services.AddScoped<AccommodationDAO>();
             builder.Services.AddScoped<PostDAO>();
-<<<<<<< HEAD
+
             builder.Services.AddScoped<UserProfileDAO>();
-=======
+
             builder.Services.AddScoped<PackagePricingDAO>();
             builder.Services.AddScoped<TimeUnitPackageDAO>();
             builder.Services.AddScoped<AmenitiesDAO>();
@@ -44,19 +43,19 @@ namespace WebAPI
             builder.Services.AddScoped<AccommodationAmenityDAO>();
             builder.Services.AddScoped<AccommodationTypeDAO>();
             builder.Services.AddScoped<PostPackageDetailDAO>();
->>>>>>> ee4833d911c2364b26aae66260d8b12dfdee426a
+
             // Repository
             builder.Services.AddScoped<IAccountRepository, AccountRepository>();
             builder.Services.AddScoped<Repositories.Interfaces.IAccommodationRepository, AccommodationRepository>();
             builder.Services.AddScoped<Repositories.Interfaces.IPostRepository, PostRepository>();
-<<<<<<< HEAD
+
             builder.Services.AddScoped<Repositories.Interfaces.IUserProfileRepository, UserProfileRepository>();
-=======
+
             builder.Services.AddScoped<IPackagePricingRepository, PackagePricingRepository>();
             builder.Services.AddScoped<IAmenitiesRepository, AmenitiesRepository>();
             builder.Services.AddScoped<Repositories.Interfaces.IAccommodationTypeRepository, AccommodationTypeRepository>(); // <-- THÊM DÒNG NÀY
             builder.Services.AddScoped<Repositories.Interfaces.ITimeUnitPackageRepository, TimeUnitPackageRepository>();
->>>>>>> ee4833d911c2364b26aae66260d8b12dfdee426a
+
 
             // Service
             builder.Services.AddScoped<IPasswordHasherCustom, PasswordHasherCustom>();
@@ -64,12 +63,12 @@ namespace WebAPI
             builder.Services.AddScoped<IAccountService, AccountService>();
             builder.Services.AddScoped<IAccommodationService, AccommodationService>();
             builder.Services.AddScoped<IPostService, PostService>();
-<<<<<<< HEAD
+
             builder.Services.AddScoped<IUserProfileService, UserProfileService>();
             // builder.Services.AddScoped<IAzureOpenAIService, AzureOpenAIService>();
-=======
+
             builder.Services.AddScoped<IAzureOpenAIService, AzureOpenAIService>();
->>>>>>> ee4833d911c2364b26aae66260d8b12dfdee426a
+
             builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             builder.Services.AddScoped<IPackagePricingService, PackagePricingService>();
             builder.Services.AddScoped<IAmenitiesSerivce, AmenitiesService>();
@@ -139,7 +138,7 @@ namespace WebAPI
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-<<<<<<< HEAD
+
                   builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
@@ -175,10 +174,10 @@ namespace WebAPI
     });
             });
 
-=======
+
             builder.Services.AddSwaggerGen();
             builder.Services.AddMemoryCache();
->>>>>>> ee4833d911c2364b26aae66260d8b12dfdee426a
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using BusinessObjects.Domains;
 using BusinessObjects.Dtos.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 
@@ -19,11 +20,13 @@ namespace WebAPI.Controllers
         private readonly IAuthService _authService;
         private readonly ILogger<AuthController> _logger;
         private readonly IAccountService _accountService;
-        public AuthController(IAuthService authService, IAccountService systemAccountService, ILogger<AuthController> logger)
+        private readonly IPasswordHasherCustom _passwordHasher;
+        public AuthController(IAuthService authService, IAccountService systemAccountService, ILogger<AuthController> logger, IPasswordHasherCustom passwordHasher)
         {
             _authService = authService;
             _accountService = systemAccountService;
             _logger = logger;
+            _passwordHasher = passwordHasher;
         }
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] AccountRegisterDto model)
@@ -283,6 +286,91 @@ namespace WebAPI.Controllers
                 });
             }
             return Unauthorized();
+        }
+        //Change Password
+        [HttpPost("change-password")]
+        public async Task<ActionResult<ChangePasswordResponseDto>> ChangePassword([FromBody] ChangePasswordDto model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new ChangePasswordResponseDto
+                    {
+                        Success = false,
+                        Message = "Dữ liệu không hợp lệ"
+                    });
+                }
+
+                // Lấy thông tin user hiện tại từ token
+                var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (accountIdClaim == null || !int.TryParse(accountIdClaim.Value, out int accountId))
+                {
+                    return Unauthorized(new ChangePasswordResponseDto
+                    {
+                        Success = false,
+                        Message = "Thông tin người dùng không hợp lệ"
+                    });
+                }
+
+                // Lấy account từ database
+                var account = await _accountService.GetAccountByIdAsync(accountId);
+                if (account == null)
+                {
+                    return NotFound(new ChangePasswordResponseDto
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy tài khoản"
+                    });
+                }
+
+                // Kiểm tra mật khẩu hiện tại
+                if (!_passwordHasher.VerifyPassword(model.CurrentPassword, account.Password!))
+                {
+                    return BadRequest(new ChangePasswordResponseDto
+                    {
+                        Success = false,
+                        Message = "Mật khẩu hiện tại không đúng"
+                    });
+                }
+
+                // Kiểm tra mật khẩu mới không trùng mật khẩu cũ
+                if (_passwordHasher.VerifyPassword(model.NewPassword, account.Password!))
+                {
+                    return BadRequest(new ChangePasswordResponseDto
+                    {
+                        Success = false,
+                        Message = "Mật khẩu mới phải khác mật khẩu hiện tại"
+                    });
+                }
+
+                // Cập nhật mật khẩu mới
+                account.Password = _passwordHasher.HashPassword(model.NewPassword);
+                account.UpdatedAt = DateTime.UtcNow;
+
+                // Vô hiệu hóa tất cả refresh token (buộc đăng nhập lại trên tất cả thiết bị)
+                account.RefreshToken = null;
+                account.RefreshTokenExpiryTime = null;
+
+                await _accountService.UpdateAccountAsync(accountId, account);
+
+                _logger.LogInformation("Password changed successfully for account {AccountId}", accountId);
+
+                return Ok(new ChangePasswordResponseDto
+                {
+                    Success = true,
+                    Message = "Đổi mật khẩu thành công. Vui lòng đăng nhập lại."
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error changing password for account");
+                return StatusCode(500, new ChangePasswordResponseDto
+                {
+                    Success = false,
+                    Message = "Có lỗi xảy ra khi đổi mật khẩu"
+                });
+            }
         }
 
     }

@@ -38,9 +38,10 @@
                                         var email = Context.Session.GetString("Email");
                                         if (email != null)
                                         {
-                                            <a class="dropdown-item" asp-controller="Account" asp-action="ConfirmEmail"
-                                                method="post">Đổi mật
-                                                khẩu</a>
+                                            <a class="dropdown-item" asp-controller="Password" asp-action="ChangePassword">
+                                                <i class="fas fa-key mr-2"></i>
+                                                Đổi mật khẩu
+                                            </a>
                                             <div class="dropdown-divider"></div>
                                             <a class="dropdown-item text-danger" href="/Auth/Logout">Đăng xuất</a>
                                         }
