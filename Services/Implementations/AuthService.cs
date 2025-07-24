@@ -378,6 +378,39 @@ namespace Services.Implementations
             return result.ToString().ToLowerInvariant();
         }
 
-    }
+        public void setTokensInsideCookieV2(TokenResponseDto tokenDto, HttpContext context)
+        {
+            context.Response.Cookies.Append("accessToken", tokenDto.AccessToken!, new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddMinutes(5),
+                HttpOnly = true,
+                IsEssential = true,
+                Secure = true,
+                SameSite = SameSiteMode.None
+            });
+            context.Response.Cookies.Append("refreshToken", tokenDto.AccessToken!, new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                HttpOnly = true,
+                IsEssential = true,
+                Secure = true,
+                SameSite = SameSiteMode.None
+            });
+        }
 
+        // Thêm method này vào AuthService của bạn
+        public async Task<LoginResponseDto?> GenerateTokenForExternalLoginAsync(Account account)
+        {
+            if (account == null) return null;
+
+            var tokenPair = await GenerateTokenPair(account);
+
+            return new LoginResponseDto
+            {
+                AccessToken = tokenPair.AccessToken,
+                RefreshToken = tokenPair.RefreshToken,
+            };
+        }
+
+    }
 }

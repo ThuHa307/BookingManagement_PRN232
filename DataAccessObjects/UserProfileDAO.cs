@@ -5,17 +5,14 @@ using System.Threading.Tasks;
 using BusinessObjects.Domains;
 using DataAccessObjects.DB;
 using Microsoft.EntityFrameworkCore;
+using RentNest.Infrastructure.DataAccess;
 
 namespace DataAccessObjects
 {
-    public class UserProfileDAO
+    public class UserProfileDAO : BaseDAO<UserProfile>
     {
-        private readonly RentNestSystemContext _context;
 
-        public UserProfileDAO(RentNestSystemContext context)
-        {
-            _context = context;
-        }
+        public UserProfileDAO(RentNestSystemContext context) : base(context) { }
 
         public async Task<UserProfile?> GetUserProfileByAccountIdAsync(int accountId)
         {

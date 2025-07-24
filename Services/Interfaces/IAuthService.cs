@@ -27,5 +27,8 @@ namespace Services.Interfaces
         Task<(bool success, string[]? recoveryCodes)> EnableTwoFactorAsync(int accountId, string verificationCode);
         Task<bool> DisableTwoFactorAsync(int accountId);
         // --- END Các phương thức mới cho 2FA ---
+
+        public void setTokensInsideCookieV2(TokenResponseDto tokenDto, HttpContext context);
+        Task<LoginResponseDto?> GenerateTokenForExternalLoginAsync(Account account);
     }
 }
