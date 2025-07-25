@@ -1,0 +1,56 @@
+@{
+    ViewData["Title"] = "Trò chuyện";
+    var accessToken = Context.Session.GetString("AccessToken");
+    var userId = Context.Session.GetString("UserId");
+}
+@if (!string.IsNullOrEmpty(accessToken))
+{
+    <script>
+        localStorage.setItem('accessToken', '@accessToken');
+    </script>
+}
+@if (!string.IsNullOrEmpty(userId))
+{
+    <script>
+        window.currentUserId = parseInt('@userId');
+    </script>
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="container mt-4" style="padding-top: 100px">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="row" style="height: 650px; border: 1px solid #dee2e6; border-radius: 10px; overflow: hidden;">
+                <!-- Danh sách hội thoại -->
+                <div class="col-md-4 p-0 border-end" style="background: #f8f9fa; height: 100%; overflow-y: auto;">
+                    <div class="list-group list-group-flush" id="conversation-list">
+                        <!-- Danh sách hội thoại sẽ được render ở đây bằng JS -->
+                    </div>
+                </div>
+                <!-- Khung chat chính -->
+                <div class="col-md-8 p-0 d-flex flex-column" style="height: 100%;">
+                    <div id="receiverInfo" class="d-flex align-items-center justify-content-between p-3 border-bottom" style="min-height: 70px; background: #f8f9fa;"></div>
+                    <div id="postInfo" class="d-flex align-items-center border-bottom p-3" style="background-color: #f8f9fa;"></div>
+                    <div id="chatBox" class="flex-grow-1 p-3" style="overflow-y: auto; background: #fff;"></div>
+                    <div class="p-3 border-top">
+                        <div class="d-flex align-items-center">
+                            <input type="file" id="imageInput" style="display:none;" accept="image/*" />
+                            <button class="btn btn-light mr-2" id="openImageInput" title="Gửi ảnh"><i class="fa-regular fa-image"></i></button>
+                            <input type="text" id="messageInput" class="form-control" placeholder="Nhập tin nhắn..." autocomplete="off" />
+                            <button class="btn btn-primary ml-2" id="sendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                        <div class="mt-2" style="overflow-x: auto; white-space: nowrap;">
+                            <div class="d-inline-flex" id="quickReplyContainer"></div>
+                            <button class="btn btn-sm btn-outline-secondary ml-2" id="openQuickMsgPopup"><i class="fa-solid fa-plus"></i> Thêm tin nhắn nhanh</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/chat-room/my-chat.js"></script>
+} 

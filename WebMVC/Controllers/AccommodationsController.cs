@@ -4,6 +4,8 @@ using RentNest.Web.Models;
 using System.Text;
 using System.Text.Json;
 using WebMVC.Models;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 
 namespace WebMVC.Controllers
@@ -278,6 +280,41 @@ namespace WebMVC.Controllers
             ViewData["Address"] = viewModel?.Address ?? "";
 
             return View(viewModel);
+        }
+
+        //[Authorize(Roles = "U,L")]
+        [HttpGet("bat-dau-tro-chuyen")]
+        public async Task<IActionResult> StartConversation(int postId, int receiverId)
+        {
+            var senderIdStr = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(senderIdStr) || !int.TryParse(senderIdStr, out int senderId))
+            {
+                return Unauthorized();
+            }
+            // Lấy access token từ session
+            var accessToken = HttpContext.Session.GetString("AccessToken");
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return Unauthorized();
+            }
+            // Gọi API backend để tạo/lấy hội thoại, gửi kèm token
+            var apiUrl = $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/chatroom/start";
+            var payload = new { ReceiverId = receiverId, PostId = postId };
+            var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var request = new HttpRequestMessage(HttpMethod.Post, apiUrl);
+            request.Content = content;
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await _httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                TempData["ErrorMessage"] = "Không thể bắt đầu trò chuyện. Vui lòng thử lại.";
+                return RedirectToAction("Detail", new { postId });
+            }
+            var json = await response.Content.ReadAsStringAsync();
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            int conversationId = doc.RootElement.GetProperty("conversationId").GetInt32();
+            TempData["OpenedConversationId"] = conversationId;
+            return RedirectToAction("Index", "ChatRoom");
         }
     }
 }
