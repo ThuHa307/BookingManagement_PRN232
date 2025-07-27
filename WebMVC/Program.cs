@@ -18,8 +18,14 @@ namespace WebMVC
             builder.Services.AddScoped<ProfileApiService>();
             builder.Services.AddScoped<PasswordApiService>();
             builder.Services.AddScoped<PostApiService>();
+            builder.Services.AddScoped<AccommodationODataApiService>();
             var apiBaseUrl = builder.Configuration["ApiSettings:ApiBaseUrl"];
             builder.Services.AddHttpClient<FavoritePostApiService>(client =>
+            {
+                client.BaseAddress = new Uri(apiBaseUrl);
+            });
+
+            builder.Services.AddHttpClient<AccommodationODataApiService>(client =>
             {
                 client.BaseAddress = new Uri(apiBaseUrl);
             });

@@ -17,6 +17,7 @@ using DataAccessObjects;
 using DataAccessObjects;
 using RentNest.Core.Configs;
 using DataAccessObjects.DataAccessLayer.DAO;
+using Microsoft.AspNetCore.OData;
 
 
 namespace WebAPI
@@ -213,6 +214,7 @@ namespace WebAPI
             builder.Services.Configure<AuthSettings>(builder.Configuration.GetSection("AuthSettings"));
 
             builder.Services.AddControllers();
+            builder.Services.AddControllers().AddOData(opt => opt.Select().Filter().OrderBy().Expand().SetMaxTop(100).Count().SkipToken());
             builder.Services.AddSignalR();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
