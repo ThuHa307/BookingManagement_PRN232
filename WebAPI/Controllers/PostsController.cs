@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using BusinessObjects.Dtos.ChatBot;
 using BusinessObjects.Dtos.Post;
@@ -59,16 +60,16 @@ namespace WebAPI.Controllers
                 return NotFound(new { message = "Không tìm thấy gói tương ứng." });
 
             return Ok(new { pricingId });
+
         }
         // Post creation and AI generation APIs
         [HttpPost]
-        public async Task<IActionResult> CreatePost([FromBody] LandlordPostDto dto)
+        public async Task<IActionResult> CreatePost([FromForm] LandlordPostDto dto)
         {
             // OwnerId should ideally come from authentication in the API, not from a direct user input on the frontend
             // For now, let's assume it's set on the client side or derived from the authenticated user in a real scenario
             // For this example, we'll keep it as is, but a more robust solution would get it from HttpContext.User
             // dto.OwnerId = User.GetUserId(); // This line might need adaptation depending on how authentication is handled in the API
-
             var postId = await _postService.SavePost(dto);
 
             return Ok(new
@@ -87,26 +88,23 @@ namespace WebAPI.Controllers
         }
         // Manage Posts API
         [HttpGet("manage")]
-        public async Task<IActionResult> ManagePost([FromQuery] string status = null)
+        public async Task<IActionResult> ManagePost([FromQuery] string status = null, [FromQuery] int accountId = 0)
         {
             if (string.IsNullOrEmpty(status))
             {
                 status = PostStatusHelper.ToDbValue(PostStatus.Pending);
             }
-
-            var accountId = User.GetUserId(); // Assuming User.GetUserId() works in API context after authentication
-
             if (accountId == 0) return Unauthorized();
 
-            var allPosts = await _postService.GetAllPostsByUserAsync(accountId.Value);
+            var allPosts = await _postService.GetAllPostsByUserAsync(accountId);
 
             var statusCounts = allPosts
                 .GroupBy(p => p.CurrentStatus)
                 .ToDictionary(g => g.Key, g => g.Count());
 
             var filteredPosts = allPosts
-                .Where(p => p.CurrentStatus == status)
-                .ToList();
+            .Where(p => p.CurrentStatus == status).
+            ToList();
 
             var viewModelList = filteredPosts.Select(f => new ManagePostViewModel // Ensure ManagePostViewModel is in a shared DTO project
             {

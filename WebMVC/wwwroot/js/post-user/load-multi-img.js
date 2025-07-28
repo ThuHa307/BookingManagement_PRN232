@@ -46,40 +46,40 @@ imageUpload.addEventListener('change', function () {
             img.file?.size === file.size &&
             img.file?.lastModified === file.lastModified
         );
-
+    
         if (isDuplicate) {
             duplicateFound = true;
             return;
         }
-
+    
+        const imageData = { file };
+    
+        uploadedImages.push(imageData); // ✅ Đẩy vào ngay lập tức
+    
         const reader = new FileReader();
         reader.onload = function (e) {
-            const imageData = {
-                file,
-                dataURL: e.target.result
-            };
-
-            uploadedImages.push(imageData);
-
+            imageData.dataURL = e.target.result;
+    
             const div = document.createElement('div');
             div.className = 'position-relative mr-3 mb-2';
             div.style.width = '100px';
             div.innerHTML = `
-            <img src="${imageData.dataURL}" class="img-thumbnail" style="width:100px; height:100px; object-fit:cover;">
-            <div class="position-absolute bg-dark rounded-circle d-flex justify-content-center align-items-center"
-                 style="width:24px; height:24px; cursor:pointer; top: 4px; right: 4px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="white" viewBox="0 0 16 16">
-                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                </svg>
-            </div>
-        `;
+                <img src="${imageData.dataURL}" class="img-thumbnail" style="width:100px; height:100px; object-fit:cover;">
+                <div class="position-absolute bg-dark rounded-circle d-flex justify-content-center align-items-center"
+                     style="width:24px; height:24px; cursor:pointer; top: 4px; right: 4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="white" viewBox="0 0 16 16">
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                </div>
+            `;
             preview.appendChild(div);
-
+    
             checkStep2Images();
         };
-
+    
         reader.readAsDataURL(file);
     });
+    
 
 
     if (duplicateFound) {

@@ -1,4 +1,6 @@
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Net.payOS;
 using WebMVC.API;
 
 namespace WebMVC
@@ -15,6 +17,8 @@ namespace WebMVC
             builder.Services.AddScoped<AccountApiService>();
             builder.Services.AddScoped<AuthApiService>();
             builder.Services.AddScoped<PostApiService>();
+            builder.Services.AddScoped<PayOSApiService>();
+            builder.Services.AddScoped<PaymentPayOSApiService>();
             builder.Services.AddHttpClient();
             builder.Services.AddHttpContextAccessor();
             // ✅ Session để lưu token
@@ -32,7 +36,21 @@ namespace WebMVC
                      options.LoginPath = "/Auth/Login";
                      options.AccessDeniedPath = "/Auth/AccessDenied";
                  });
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles; // Giữ nguyên dòng này nếu đã có
+        });
+            builder.Services.AddSingleton(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                return new PayOS(
+                    config["PayOS:ClientId"],
+                    config["PayOS:ApiKey"],
+                    config["PayOS:ChecksumKey"]
+                );
+            });
 
 
             var app = builder.Build();
