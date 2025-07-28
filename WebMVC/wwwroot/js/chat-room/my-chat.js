@@ -42,7 +42,7 @@ $(document).ready(function () {
         }).then((result) => {
             if (result.isConfirmed && result.value && result.value.trim().length > 0) {
                 $.ajax({
-                    url: 'https://localhost:7225/api/chatroom/quick-message',
+                    url: 'https://localhost:5290/api/chatroom/quick-message',
                     method: 'POST',
                     contentType: 'application/json',
                     headers: {
@@ -76,7 +76,7 @@ function getCookie(name) {
 
 function loadConversations() {
     $.ajax({
-        url: 'https://localhost:7225/api/chatroom/conversations',
+        url: 'https://localhost:5290/api/chatroom/conversations',
         method: 'GET',
         headers: {
             'Authorization': 'Bearer ' + getAccessToken()
@@ -130,7 +130,7 @@ function loadConversations() {
 
 function loadConversationDetail(conversationId) {
     $.ajax({
-        url: `https://localhost:7225/api/chatroom/detail/${conversationId}`,
+        url: `https://localhost:5290/api/chatroom/detail/${conversationId}`,
         method: 'GET',
         headers: {
             'Authorization': 'Bearer ' + getAccessToken()
@@ -216,7 +216,7 @@ function loadConversationDetail(conversationId) {
 
 function loadQuickReplies() {
     $.ajax({
-        url: 'https://localhost:7225/api/chatroom/quick-replies',
+        url: 'https://localhost:5290/api/chatroom/quick-replies',
         method: 'GET',
         headers: {
             'Authorization': 'Bearer ' + getAccessToken()
@@ -305,7 +305,7 @@ function initSignalR() {
 
 function startSignalR() {
     connection = new signalR.HubConnectionBuilder()
-        .withUrl('https://localhost:7225/chathub', {
+        .withUrl('https://localhost:5290/chathub', {
             accessTokenFactory: () => getAccessToken()
         })
         .withAutomaticReconnect()
