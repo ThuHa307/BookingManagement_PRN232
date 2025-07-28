@@ -8,8 +8,8 @@ namespace RentNest.Core.Enums
 {
     public enum PaymentStatus
     {
-        Success,  //S
-        Pending,  //P
-        Failed    //F
+        Success,  // S
+        Pending,  // P
+        Failed    // F
     }
 }

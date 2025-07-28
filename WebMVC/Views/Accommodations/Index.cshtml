@@ -96,7 +96,7 @@
 							<!-- Loại phòng -->
 							<div class="col-md-12">
 								<div class="form-group">
-									<label>Loại phòng</label>
+									<label>Loại phòng</label>	
 									<select name="roomType" class="form-control">
 										<option value="">Chọn loại phòng</option>
 										<option value="Phòng trọ">Phòng trọ</option>
@@ -182,55 +182,66 @@
 												height: @(isDiamond ? "380px" : isGold ? "300px" : isSilver ? "230px" : "180px");
 												overflow: hidden;">
 										@if (isDiamond)
-										{
-											var images = item.ListImages?.Take(6).ToList() ?? new List<string> { item.ImageUrl };
-											<div class="h-100 d-flex flex-column gap-1">
-												@if (images.Count > 0)
-												{
-													<div class="flex-grow-1" style="height: 110px;">
-														<img src="@images[0]" class="img-fluid w-100 h-100 rounded" style="object-fit: cover;" />
-													</div>
-												}
-												@if (images.Count > 1)
-												{
-													<div class="d-flex gap-1 mt-1" style="height: 85px;">
-														@for (int i = 1; i < Math.Min(images.Count, 6); i++)
-														{
-															<div class="flex-fill">
-																<img src="@images[i]" class="img-fluid w-100 h-100 rounded" style="object-fit: contain;" />
-															</div>
-														}
-													</div>
-												}
-											</div>
-										}
-										else if (isGold)
-										{
-											var images = item.ListImages?.Take(4).ToList() ?? new List<string> { item.ImageUrl };
-											<div class="h-100 d-flex flex-column gap-1">
-												@if (images.Count > 0)
-												{
-													<div class="flex-grow-1" style="height: 185px;">
-														<img src="@images[0]" class="img-fluid w-100 h-100 rounded" style="object-fit: cover;" />
-													</div>
-												}
-												@if (images.Count > 1)
-												{
-													<div class="d-flex gap-1 mt-1" style="height: 85px;">
-														@for (int i = 1; i < Math.Min(images.Count, 3); i++)
-														{
-															<div class="flex-fill mx-1">
-																<img src="@images[i]" class="img-fluid w-100 h-100 rounded" style="object-fit: cover;" />
-															</div>
-														}
-													</div>
-												}
-											</div>
-										}
-										else
-										{
-											<img src="@item.ImageUrl" alt="@item.Title" class="img-fluid h-100 w-100" style="object-fit: cover;">
-										}
+{
+	var images = item.ListImages?.Take(6).ToList() ?? new List<string> { item.ImageUrl };
+	<div class="h-100 d-flex flex-column gap-1">
+		@if (images.Count > 0)
+		{
+			<div class="flex-grow-1" style="height: 110px;">
+				<img src="@(images[0].StartsWith("http") ? images[0] : $"https://localhost:5290{images[0]}")"
+					 class="img-fluid w-100 h-100 rounded"
+					 style="object-fit: cover;" />
+			</div>
+		}
+		@if (images.Count > 1)
+		{
+			<div class="d-flex gap-1 mt-1" style="height: 85px;">
+				@for (int i = 1; i < Math.Min(images.Count, 6); i++)
+				{
+					<div class="flex-fill">
+						<img src="@(images[i].StartsWith("http") ? images[i] : $"https://localhost:5290{images[i]}")"
+							 class="img-fluid w-100 h-100 rounded"
+							 style="object-fit: contain;" />
+					</div>
+				}
+			</div>
+		}
+	</div>
+}
+else if (isGold)
+{
+	var images = item.ListImages?.Take(4).ToList() ?? new List<string> { item.ImageUrl };
+	<div class="h-100 d-flex flex-column gap-1">
+		@if (images.Count > 0)
+		{
+			<div class="flex-grow-1" style="height: 185px;">
+				<img src="@(images[0].StartsWith("http") ? images[0] : $"https://localhost:5290{images[0]}")"
+					 class="img-fluid w-100 h-100 rounded"
+					 style="object-fit: cover;" />
+			</div>
+		}
+		@if (images.Count > 1)
+		{
+			<div class="d-flex gap-1 mt-1" style="height: 85px;">
+				@for (int i = 1; i < Math.Min(images.Count, 3); i++)
+				{
+					<div class="flex-fill mx-1">
+						<img src="@(images[i].StartsWith("http") ? images[i] : $"https://localhost:5290{images[i]}")"
+							 class="img-fluid w-100 h-100 rounded"
+							 style="object-fit: cover;" />
+					</div>
+				}
+			</div>
+		}
+	</div>
+}
+else
+{
+	<img src="@(item.ImageUrl.StartsWith("http") ? item.ImageUrl : $"https://localhost:5290{item.ImageUrl}")"
+		 alt="@item.Title"
+		 class="img-fluid h-100 w-100"
+		 style="object-fit: cover;" />
+}
 
 										@if (item.PackageTypeName != PackageTypeEnum.Normal.GetDisplayName())
 										{

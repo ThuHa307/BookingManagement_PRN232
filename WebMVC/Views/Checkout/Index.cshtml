@@ -1,0 +1,23 @@
+@{
+    ViewData["Title"] = "Thanh toán PayOS";
+}
+
+<h2>Thanh toán PayOS</h2>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<form asp-controller="Checkout" asp-action="CheckoutPayment" method="post">
+    <div class="mb-3">
+        <label for="productName" class="form-label">Tên sản phẩm</label>
+        <input type="text" class="form-control" id="ItemName" name="ItemName" placeholder="Nhập tên sản phẩm" required>
+    </div>
+    <div class="mb-3">
+        <label for="price" class="form-label">Giá (VND)</label>
+        <input type="number" class="form-control" id="AmountPayOs" name="AmountPayOs" placeholder="Nhập giá" required
+            min="1000">
+    </div>
+    <button type="submit" class="btn btn-primary">Tạo thanh toán</button>
+</form>

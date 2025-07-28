@@ -25,6 +25,9 @@ namespace RentNest.Core.UtilHelper
 
         public static PostStatus FromDbValue(string value)
         {
+            if (string.IsNullOrWhiteSpace(value))
+                return PostStatus.Pending; // hoặc Unpaid, tùy theo logic
+
             return value switch
             {
                 "P" => PostStatus.Pending,

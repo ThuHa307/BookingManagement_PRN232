@@ -16,6 +16,8 @@ using DataAccessObjects;
 
 using DataAccessObjects;
 using RentNest.Core.Configs;
+using Net.payOS;
+using DataAccessObjects;
 using DataAccessObjects.DataAccessLayer.DAO;
 using Microsoft.AspNetCore.OData;
 
@@ -33,6 +35,16 @@ namespace WebAPI
             builder.Services.Configure<AzureOpenAISettings>(
             builder.Configuration.GetSection("AzureOpenAISettings"));
             builder.Services.AddHttpContextAccessor();
+            builder.Services.AddSingleton<PayOS>(sp =>
+{
+    // Thay các thông tin bên dưới bằng thông tin thật
+    var clientId = builder.Configuration["PayOS:ClientId"];
+    var apiKey = builder.Configuration["PayOS:ApiKey"];
+    var checksumKey = builder.Configuration["PayOS:ChecksumKey"];
+
+    return new PayOS(clientId, apiKey, checksumKey);
+});
+
             // ======= DEPENDENCY INJECTION =======
             // DAO
             builder.Services.AddScoped<AccommodationDAO>();
@@ -49,6 +61,7 @@ namespace WebAPI
             builder.Services.AddScoped<AccommodationAmenityDAO>();
             builder.Services.AddScoped<AccommodationTypeDAO>();
             builder.Services.AddScoped<PostPackageDetailDAO>();
+            builder.Services.AddScoped<PaymentDAO>();
             builder.Services.AddScoped<FavoritePostDAO>();
             builder.Services.AddScoped<AccountDAO>();
             builder.Services.AddScoped<UserProfileDAO>();
@@ -259,6 +272,7 @@ namespace WebAPI
             builder.Services.AddMemoryCache();
 
             var app = builder.Build();
+            app.UseStaticFiles();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
