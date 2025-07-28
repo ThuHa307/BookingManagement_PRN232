@@ -138,5 +138,66 @@ namespace WebAPI.Controllers
             // In an API, you return the data directly, not ViewBag.
             return Ok(new { posts = viewModelList, statusCounts = statusCounts });
         }
+
+        [HttpGet("{postId:int}/detail")]
+        public async Task<IActionResult> GetPostDetail(int postId)
+        {
+            var post = await _postService.GetPostDetailWithAccommodationDetailAsync(postId);
+
+            if (post == null || post.Accommodation == null || post.Accommodation.AccommodationDetail == null)
+            {
+                return NotFound("Không tìm thấy dữ liệu chi tiết");
+            }
+
+            var imageUrls = post.Accommodation.AccommodationImages?
+                .Select(img => img.ImageUrl)
+                .ToList() ?? new List<string>();
+
+            var latestPackage = post.PostPackageDetails
+                 .OrderByDescending(p => p.StartDate)
+                 .FirstOrDefault();
+
+            var viewModel = new AccommodationDetailViewModel
+            {
+                PostId = post.PostId,
+                PostTitle = post.Title,
+                PostContent = post.Content,
+                DetailId = post.Accommodation.AccommodationDetail.DetailId,
+                AccommodationId = post.Accommodation.AccommodationId,
+                ImageUrls = imageUrls,
+                Price = post.Accommodation.Price,
+                Description = post.Accommodation.Description,
+                BathroomCount = post.Accommodation.AccommodationDetail.BathroomCount,
+                BedroomCount = post.Accommodation.AccommodationDetail.BedroomCount,
+                HasKitchenCabinet = post.Accommodation.AccommodationDetail.HasKitchenCabinet,
+                HasAirConditioner = post.Accommodation.AccommodationDetail.HasAirConditioner,
+                HasRefrigerator = post.Accommodation.AccommodationDetail.HasRefrigerator,
+                HasWashingMachine = post.Accommodation.AccommodationDetail.HasWashingMachine,
+                HasLoft = post.Accommodation.AccommodationDetail.HasLoft,
+                FurnitureStatus = post.Accommodation.AccommodationDetail.FurnitureStatus,
+                CreatedAt = post.Accommodation.AccommodationDetail.CreatedAt,
+                UpdatedAt = post.Accommodation.AccommodationDetail.UpdatedAt,
+                Address = post.Accommodation.Address ?? "",
+                AccountId = post.Account.AccountId,
+                AccountImg = post.Account.UserProfile.AvatarUrl ?? "/images/default-avatar.jpg",
+                AccountName = post.Account.UserProfile.FirstName + " " + post.Account.UserProfile.LastName,
+                AccountPhone = post.Account.UserProfile.PhoneNumber,
+                Amenities = post.Accommodation.AccommodationAmenities?
+                    .Where(a => a.Amenity != null)
+                    .Select(a => a.Amenity.AmenityName)
+                    .ToList() ?? new List<string>(),
+                DistrictName = post.Accommodation.DistrictName ?? "",
+                ProvinceName = post.Accommodation.ProvinceName ?? "",
+                WardName = post.Accommodation.WardName ?? "",
+
+                PackageTypeName = latestPackage?.Pricing?.PackageType?.PackageTypeName ?? "Tin thường",
+                TimeUnitName = latestPackage?.Pricing?.TimeUnit?.TimeUnitName ?? "",
+                TotalPrice = latestPackage?.TotalPrice ?? 0,
+                StartDate = latestPackage?.StartDate,
+                EndDate = latestPackage?.EndDate
+            };
+
+            return Ok(viewModel);
+        }
     }
 }

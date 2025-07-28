@@ -294,9 +294,25 @@ else
 														<i class="fa fa-phone"></i> @maskedPhone
 													</button>
 												}
-												<button class="btn btn-light border favorite-btn" data-post-id="@item.Id">
-													<i class="fas fa-heart" id="heart-@item.Id"></i>
-												</button>
+												@if (item.IsFavorite)
+												{
+													<form asp-controller="FavoritePost" asp-action="Delete" method="post">
+														<input type="hidden" name="postId" value="@item.Id" />
+														<button type="submit" class="btn btn-link" style="color: red;">❤️ Bỏ yêu thích</button>
+													</form>
+												}
+												else
+												{
+													<form asp-controller="FavoritePost" asp-action="Add" method="post">
+														<input type="hidden" name="postId" value="@item.Id" />
+														<button type="submit" class="btn btn-link" style="color: gray;">🤍 Yêu thích</button>
+													</form>
+												}
+
+
+
+
+
 											</div>
 										</div>
 									</div>
@@ -343,6 +359,9 @@ else
 }
 <script src="~/js/common/show-toast.js"></script>
 <script src="~/js/favorite-post/add-favorite.js"></script>
+
+
+
 <script>
 	document.querySelector("form").addEventListener("submit", function (e) {
 		document.getElementById("provinceId").value = document.getElementById("provinceDropdown").value;

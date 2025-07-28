@@ -1,5 +1,7 @@
 using BusinessObjects.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Services.Interfaces;
 
 namespace WebAPI.Controllers
@@ -22,6 +24,56 @@ namespace WebAPI.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
 
+        [HttpGet("odata")]
+        [EnableQuery]
+        public async Task<IActionResult> GetAccommodationsOData()
+        {
+            try
+            {
+                var posts = await _postService.GetAllPostsWithAccommodation();
+
+                var accommodations = posts
+                    .Where(p => p.CurrentStatus.Equals("A"))
+                    .Select(p =>
+                    {
+                        var latestPackageDetail = p.PostPackageDetails
+                            .OrderByDescending(d => d.StartDate)
+                            .FirstOrDefault();
+
+                        return new AccommodationDto
+                        {
+                            Id = p.PostId,
+                            Status = p.CurrentStatus,
+                            Title = p.Title,
+                            Price = p.Accommodation.Price,
+                            Address = p.Accommodation.Address,
+                            Area = p.Accommodation.Area,
+                            BathroomCount = p.Accommodation?.AccommodationDetail?.BathroomCount,
+                            BedroomCount = p.Accommodation?.AccommodationDetail?.BedroomCount,
+                            ImageUrl = p.Accommodation?.AccommodationImages?.FirstOrDefault()?.ImageUrl ?? "default-image.jpg",
+                            CreatedAt = p.CreatedAt,
+                            DistrictName = p.Accommodation.DistrictName ?? "",
+                            ProvinceName = p.Accommodation.ProvinceName ?? "",
+                            WardName = p.Accommodation.WardName ?? "",
+                            PackageTypeName = latestPackageDetail?.Pricing?.PackageType?.PackageTypeName ?? "",
+                            TimeUnitName = latestPackageDetail?.Pricing?.TimeUnit?.TimeUnitName ?? "",
+                            TotalPrice = latestPackageDetail?.TotalPrice ?? 0,
+                            StartDate = latestPackageDetail?.StartDate,
+                            EndDate = latestPackageDetail?.EndDate,
+                            ListImages = p.Accommodation?.AccommodationImages?.Select(i => i.ImageUrl).ToList() ?? new List<string>(),
+                            PhoneNumber = p.Account.UserProfile?.PhoneNumber ?? ""
+                        };
+                    });
+
+                return Ok(accommodations);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // Original version - giữ lại để backward compatibility
         [HttpGet]
         public async Task<IActionResult> GetAccommodations(
             string? roomType, 
@@ -39,36 +91,38 @@ namespace WebAPI.Controllers
             {
                 var posts = await _postService.GetAllPostsWithAccommodation();
 
-                var accommodations = posts.Select(p =>
-                {
-                    var latestPackageDetail = p.PostPackageDetails
-                        .OrderByDescending(d => d.StartDate)
-                        .FirstOrDefault();
-
-                    return new AccommodationDto
+                var accommodations = posts
+                    .Where(p => p.CurrentStatus.Equals("A"))
+                    .Select(p =>
                     {
-                        Id = p.PostId,
-                        Status = p.CurrentStatus,
-                        Title = p.Title,
-                        Price = p.Accommodation.Price,
-                        Address = p.Accommodation.Address,
-                        Area = p.Accommodation.Area,
-                        BathroomCount = p.Accommodation?.AccommodationDetail?.BathroomCount,
-                        BedroomCount = p.Accommodation?.AccommodationDetail?.BedroomCount,
-                        ImageUrl = p.Accommodation?.AccommodationImages?.FirstOrDefault()?.ImageUrl ?? "default-image.jpg",
-                        CreatedAt = p.CreatedAt,
-                        DistrictName = p.Accommodation.DistrictName ?? "",
-                        ProvinceName = p.Accommodation.ProvinceName ?? "",
-                        WardName = p.Accommodation.WardName ?? "",
-                        PackageTypeName = latestPackageDetail?.Pricing?.PackageType?.PackageTypeName ?? "",
-                        TimeUnitName = latestPackageDetail?.Pricing?.TimeUnit?.TimeUnitName ?? "",
-                        TotalPrice = latestPackageDetail?.TotalPrice ?? 0,
-                        StartDate = latestPackageDetail?.StartDate,
-                        EndDate = latestPackageDetail?.EndDate,
-                        ListImages = p.Accommodation?.AccommodationImages?.Select(i => i.ImageUrl).ToList() ?? new List<string>(),
-                        PhoneNumber = p.Account.UserProfile?.PhoneNumber ?? ""
-                    };
-                }).ToList();
+                        var latestPackageDetail = p.PostPackageDetails
+                            .OrderByDescending(d => d.StartDate)
+                            .FirstOrDefault();
+
+                        return new AccommodationDto
+                        {
+                            Id = p.PostId,
+                            Status = p.CurrentStatus,
+                            Title = p.Title,
+                            Price = p.Accommodation.Price,
+                            Address = p.Accommodation.Address,
+                            Area = p.Accommodation.Area,
+                            BathroomCount = p.Accommodation?.AccommodationDetail?.BathroomCount,
+                            BedroomCount = p.Accommodation?.AccommodationDetail?.BedroomCount,
+                            ImageUrl = p.Accommodation?.AccommodationImages?.FirstOrDefault()?.ImageUrl ?? "default-image.jpg",
+                            CreatedAt = p.CreatedAt,
+                            DistrictName = p.Accommodation.DistrictName ?? "",
+                            ProvinceName = p.Accommodation.ProvinceName ?? "",
+                            WardName = p.Accommodation.WardName ?? "",
+                            PackageTypeName = latestPackageDetail?.Pricing?.PackageType?.PackageTypeName ?? "",
+                            TimeUnitName = latestPackageDetail?.Pricing?.TimeUnit?.TimeUnitName ?? "",
+                            TotalPrice = latestPackageDetail?.TotalPrice ?? 0,
+                            StartDate = latestPackageDetail?.StartDate,
+                            EndDate = latestPackageDetail?.EndDate,
+                            ListImages = p.Accommodation?.AccommodationImages?.Select(i => i.ImageUrl).ToList() ?? new List<string>(),
+                            PhoneNumber = p.Account.UserProfile?.PhoneNumber ?? ""
+                        };
+                    }).ToList();
 
                 // Apply filters
                 if (!string.IsNullOrEmpty(roomType))
