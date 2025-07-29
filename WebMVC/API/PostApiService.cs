@@ -100,7 +100,7 @@ namespace WebMVC.API
             form.Add(new StringContent(dto.Address), "address");
             form.Add(new StringContent(dto.AccommodationTypeId.ToString()), "accommodationTypeId");
             form.Add(new StringContent(dto.Area.ToString()), "area");
-            form.Add(new StringContent(dto.Price.ToString()), "Price");
+            form.Add(new StringContent(dto.MyPrice.ToString()), "MyPrice");
 
             if (!string.IsNullOrEmpty(dto.FurnitureStatus))
                 form.Add(new StringContent(dto.FurnitureStatus), "furnitureStatus");
@@ -242,7 +242,7 @@ namespace WebMVC.API
             var accommodationTypesResponse = await _httpClient.GetAsync("api/v1/accommodation-types");
             var amenitiesResponse = await _httpClient.GetAsync("api/v1/amenities");
             var timePackagesResponse = await _httpClient.GetAsync("api/v1/time-unit-packages");
-            var accountResponse = await _httpClient.GetAsync($"api/v1/accounts/{currentUserId}/profile");
+            var accountResponse = await _httpClient.GetAsync($"api/admin/account/{currentUserId}/profile");
             RemoveAuthorizationHeader();
 
             accommodationTypesResponse.EnsureSuccessStatusCode();

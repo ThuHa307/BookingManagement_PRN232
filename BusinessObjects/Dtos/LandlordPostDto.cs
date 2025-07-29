@@ -7,7 +7,7 @@ namespace RentNest.Core.DTO
         public required string Address { get; set; }
         public required int AccommodationTypeId { get; set; }
         public required int Area { get; set; }
-        public required decimal Price { get; set; }
+        public required decimal MyPrice { get; set; }
         public string? FurnitureStatus { get; set; }
         public int? NumberBedroom { get; set; }
         public int? NumberBathroom { get; set; }

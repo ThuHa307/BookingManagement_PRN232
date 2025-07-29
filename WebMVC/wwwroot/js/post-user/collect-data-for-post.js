@@ -166,12 +166,14 @@ document.getElementById('testCollectFormBtn')?.addEventListener('click', async f
     }
 
     formData.set("totalPrice", parseFloat(rawData.totalPrice));
-    formData.set("Price", parseFloat(rawData.Price));
+    formData.set("myPrice", parseFloat(rawData.Price).toString());
     formData.set("startDate", rawData.startDate);
     formData.set("endDate", rawData.endDate);
     formData.set("accommodationTypeId", parseInt(rawData.category));
     formData.set("address", rawData.address);
     formData.set("pricingId", rawData.pricingId);
+
+    console.log(parseFloat(rawData.totalPrice));
 
     try {
         const response = await fetch('/nguoi-cho-thue/dang-tin', {
