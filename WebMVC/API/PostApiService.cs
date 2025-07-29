@@ -13,6 +13,7 @@ using RentNest.Core.DTO;
 using RentNest.Core.Model.Momo;
 using RentNest.Core.Model.VNPay;
 using WebMVC.Models;
+using System.Text.Json.Serialization; // Thêm namespace này
 
 namespace WebMVC.API
 {
@@ -21,6 +22,8 @@ namespace WebMVC.API
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor; // To get access token if needed
+        private readonly JsonSerializerOptions _jsonSerializerOptions;
+
 
         public PostApiService(HttpClient httpClient, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
@@ -30,6 +33,13 @@ namespace WebMVC.API
             _httpClient.BaseAddress = new Uri(_configuration["ApiSettings:ApiBaseUrl"]!);
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _jsonSerializerOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true, // Quan trọng nhất!
+                ReferenceHandler = ReferenceHandler.IgnoreCycles, // Giữ nguyên nếu cần
+                // Nếu bạn muốn tên thuộc tính được chuyển đổi từ PascalCase sang camelCase khi serialize (ít liên quan ở đây nhưng tốt nếu có)
+                // PropertyNamingPolicy = JsonNamingPolicy.CamelCase 
+            };
         }
         // Helper to add authorization header
         private void AddAuthorizationHeader()
@@ -83,22 +93,82 @@ namespace WebMVC.API
         public async Task<Tuple<bool, int?, decimal?>> CreatePost(LandlordPostDto dto)
         {
             AddAuthorizationHeader();
-            var json = JsonSerializer.Serialize(dto);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("api/v1/posts", content);
+
+            using var form = new MultipartFormDataContent();
+
+            // Add scalar values
+            form.Add(new StringContent(dto.Address), "address");
+            form.Add(new StringContent(dto.AccommodationTypeId.ToString()), "accommodationTypeId");
+            form.Add(new StringContent(dto.Area.ToString()), "area");
+            form.Add(new StringContent(dto.Price.ToString()), "Price");
+
+            if (!string.IsNullOrEmpty(dto.FurnitureStatus))
+                form.Add(new StringContent(dto.FurnitureStatus), "furnitureStatus");
+
+            if (dto.NumberBedroom.HasValue)
+                form.Add(new StringContent(dto.NumberBedroom.ToString()), "numberBedroom");
+
+            if (dto.NumberBathroom.HasValue)
+                form.Add(new StringContent(dto.NumberBathroom.ToString()), "numberBathroom");
+
+            form.Add(new StringContent(dto.HasKitchenCabinet?.ToString() ?? "false"), "hasKitchenCabinet");
+            form.Add(new StringContent(dto.HasAirConditioner?.ToString() ?? "false"), "hasAirConditioner");
+            form.Add(new StringContent(dto.HasRefrigerator?.ToString() ?? "false"), "hasRefrigerator");
+            form.Add(new StringContent(dto.HasWashingMachine?.ToString() ?? "false"), "hasWashingMachine");
+            form.Add(new StringContent(dto.HasLoft?.ToString() ?? "false"), "hasLoft");
+
+            form.Add(new StringContent(dto.titlePost), "titlePost");
+            form.Add(new StringContent(dto.contentPost), "contentPost");
+
+            if (dto.AmenityIds != null)
+            {
+                foreach (var id in dto.AmenityIds)
+                {
+                    form.Add(new StringContent(id.ToString()), "AmenityIds");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(dto.AccommodationDescription))
+                form.Add(new StringContent(dto.AccommodationDescription), "accommodationDescription");
+
+            if (dto.PricingId.HasValue)
+                form.Add(new StringContent(dto.PricingId.ToString()), "pricingId");
+
+            if (dto.OwnerId.HasValue)
+                form.Add(new StringContent(dto.OwnerId.ToString()), "ownerId");
+
+            form.Add(new StringContent(dto.TotalPrice.ToString()), "totalPrice");
+            form.Add(new StringContent(dto.StartDate.ToString("yyyy-MM-dd")), "startDate");
+            form.Add(new StringContent(dto.EndDate.ToString("yyyy-MM-dd")), "endDate");
+
+            // Add files
+            if (dto.Images != null)
+            {
+                foreach (var file in dto.Images)
+                {
+                    var streamContent = new StreamContent(file.OpenReadStream());
+                    streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                    form.Add(streamContent, "images", file.FileName); // lowercase "images" to match DTO
+                }
+            }
+
+            var response = await _httpClient.PostAsync("api/v1/posts", form);
             RemoveAuthorizationHeader();
 
             if (response.IsSuccessStatusCode)
             {
                 var responseContent = await response.Content.ReadFromJsonAsync<JsonElement>();
-                return Tuple.Create<bool, int?, decimal?>(
-                        responseContent.GetProperty("success").GetBoolean(),
-                        (int?)responseContent.GetProperty("postId").GetInt32(),
-                        (decimal?)responseContent.GetProperty("amount").GetDecimal()
-                    );
+                return Tuple.Create(
+                    responseContent.GetProperty("success").GetBoolean(),
+                    (int?)responseContent.GetProperty("postId").GetInt32(),
+                    (decimal?)responseContent.GetProperty("amount").GetDecimal()
+                );
             }
+
             return Tuple.Create<bool, int?, decimal?>(false, null, null);
+
         }
+
 
         public async Task<string> GeneratePostWithAI(PostDataAIDto model)
         {
@@ -114,16 +184,56 @@ namespace WebMVC.API
         public async Task<Tuple<List<ManagePostViewModel>, Dictionary<string, int>>> GetManagePosts(string status, int accountId)
         {
             AddAuthorizationHeader();
-            // The API handles filtering by status and accountId
-            var response = await _httpClient.GetAsync($"api/v1/posts/manage?status={status}&accountId={accountId}"); // Assuming API supports accountId query
-            RemoveAuthorizationHeader();
-            response.EnsureSuccessStatusCode();
-            var apiResponse = await response.Content.ReadFromJsonAsync<JsonElement>();
+            string requestUri = $"api/v1/posts/manage?status={status}&accountId={accountId}";
 
-            var posts = JsonSerializer.Deserialize<List<ManagePostViewModel>>(apiResponse.GetProperty("posts").GetRawText());
-            var statusCounts = JsonSerializer.Deserialize<Dictionary<string, int>>(apiResponse.GetProperty("statusCounts").GetRawText());
+            HttpResponseMessage response;
+            try
+            {
+                response = await _httpClient.GetAsync(requestUri);
+                response.EnsureSuccessStatusCode();
+            }
+            catch (HttpRequestException httpEx)
+            {
+                // Bạn có thể log lỗi ở đây nếu cần cho production, nhưng đã bỏ _logger.Log...
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+            finally
+            {
+                RemoveAuthorizationHeader();
+            }
 
-            return Tuple.Create(posts, statusCounts);
+            JsonElement apiResponse;
+            try
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                // Deserialize thẳng JSONElement với options đã cấu hình
+                apiResponse = JsonSerializer.Deserialize<JsonElement>(responseContent, _jsonSerializerOptions);
+
+                if (!apiResponse.TryGetProperty("posts", out var postsElement) || !apiResponse.TryGetProperty("statusCounts", out var statusCountsElement))
+                {
+                    return Tuple.Create(new List<ManagePostViewModel>(), new Dictionary<string, int>());
+                }
+
+                // Truyền options vào đây!
+                var posts = JsonSerializer.Deserialize<List<ManagePostViewModel>>(postsElement.GetRawText(), _jsonSerializerOptions);
+                // Truyền options vào đây!
+                var statusCounts = JsonSerializer.Deserialize<Dictionary<string, int>>(statusCountsElement.GetRawText(), _jsonSerializerOptions);
+
+                return Tuple.Create(posts, statusCounts);
+            }
+            catch (JsonException jsonEx)
+            {
+                return Tuple.Create(new List<ManagePostViewModel>(), new Dictionary<string, int>());
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         public async Task<CreatePostViewModel> GetCreatePostInitialData(int? currentUserId)
