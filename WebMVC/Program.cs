@@ -23,6 +23,7 @@ namespace WebMVC
             builder.Services.AddScoped<PayOSApiService>();
             builder.Services.AddScoped<PaymentPayOSApiService>();
             builder.Services.AddScoped<AccommodationODataApiService>();
+            builder.Services.AddScoped<IHomeApiService, HomeApiService>();
             var apiBaseUrl = builder.Configuration["ApiSettings:ApiBaseUrl"];
             builder.Services.AddHttpClient<FavoritePostApiService>(client =>
             {

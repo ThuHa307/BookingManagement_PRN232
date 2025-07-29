@@ -20,7 +20,8 @@
   <ItemGroup>
     <ProjectReference Include="..\BusinessObjects\BusinessObjects.csproj" />
     <ProjectReference Include="..\Services\Services.csproj" />
-    <PackageReference Include="payOS" Version="1.0.8" />
+	  <ProjectReference Include="..\WebMVC\WebMVC.csproj" />
+	  <PackageReference Include="payOS" Version="1.0.8" />
   </ItemGroup>
 
 </Project>
