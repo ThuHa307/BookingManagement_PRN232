@@ -226,6 +226,7 @@ namespace WebAPI
             builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
             builder.Services.Configure<AuthSettings>(builder.Configuration.GetSection("AuthSettings"));
 
+
             builder.Services.AddControllers();
             builder.Services.AddControllers().AddOData(opt => opt.Select().Filter().OrderBy().Expand().SetMaxTop(100).Count().SkipToken());
             builder.Services.AddSignalR();

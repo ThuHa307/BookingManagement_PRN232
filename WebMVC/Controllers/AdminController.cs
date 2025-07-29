@@ -7,6 +7,7 @@ using WebMVC.API;
 using BusinessObjects.Dtos.Account;
 using BusinessObjects.Dtos.Common;
 using WebMVC.Models;
+using Services.Interfaces;
 
 namespace WebMVC.Controllers
 { 
@@ -14,11 +15,13 @@ namespace WebMVC.Controllers
     {
         private readonly AccountApiService _apiService;
         private readonly ILogger<AdminController> _logger;
+        private readonly PostApiService _postApiService;
 
-        public AdminController(AccountApiService apiService, ILogger<AdminController> logger)
+        public AdminController(AccountApiService apiService, ILogger<AdminController> logger, PostApiService postApiService)
         {
             _apiService = apiService;
             _logger = logger;
+            _postApiService = postApiService;
         }
 
         // Dashboard Home
@@ -526,6 +529,134 @@ namespace WebMVC.Controllers
                     OnlineAccounts = 0,
                     TwoFactorEnabledAccounts = 0
                 });
+            }
+        }
+
+        
+
+        // Method Posts() cuối cùng trong AdminController:
+
+        [HttpGet("AdminPosts")]
+        public async Task<IActionResult> Posts()
+        {
+            try
+            {
+                var accessToken = HttpContext.Session.GetString("AccessToken");
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    TempData["ErrorMessage"] = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+                    return RedirectToAction("Login", "Auth");
+                }
+
+                var posts = await _postApiService.GetAllPostsWithAccommodation();
+
+                var viewModel = posts.Select(p => new AdminPostViewModel
+                {
+                    PostId = p.PostId,
+                    Title = string.IsNullOrEmpty(p.Title) ? "Không có tiêu đề" : p.Title,
+                    Content = string.IsNullOrEmpty(p.Content) ? "Không có nội dung" : p.Content,
+                    CreatorName = string.IsNullOrEmpty(p.CreatorName) ? "Phạm Thanh Vũ" : p.CreatorName,
+                    Status = string.IsNullOrEmpty(p.Status) ? "P" : p.Status,
+                    CreatedAt = p.CreatedAt
+                }).ToList();
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi tải danh sách bài viết");
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải danh sách bài viết.";
+                return View(new List<AdminPostViewModel>());
+            }
+        }
+
+        // Cập nhật PostDetail method để xử lý trường hợp post không tồn tại:
+        [HttpGet("PostDetail/{postId:int}")]
+        public async Task<IActionResult> PostDetail(int postId)
+        {
+            try
+            {
+                var accessToken = HttpContext.Session.GetString("AccessToken");
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    TempData["ErrorMessage"] = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+                    return RedirectToAction("Login", "Auth");
+                }
+
+                var post = await _postApiService.GetPostDetail(postId);
+                if (post == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy bài viết.";
+                    return RedirectToAction("Posts");
+                }
+
+                var comments = await _postApiService.GetCommentsForPost(postId);
+                var commentContents = comments
+                    .Where(c => !string.IsNullOrWhiteSpace(c.Content))
+                    .Select(c => c.Content)
+                    .ToList();
+
+                double? averageScore = null;
+                if (commentContents.Any())
+                {
+                    try
+                    {
+                        averageScore = await _postApiService.ScoreAverageCommentAsync(
+                            post.PostContent ?? "Không có nội dung",
+                            commentContents
+                        );
+                    }
+                    catch (Exception scoreEx)
+                    {
+                        _logger.LogWarning(scoreEx, "Không thể tính điểm cho bài viết {PostId}", postId);
+                        // Không throw exception, chỉ để averageScore = null
+                    }
+                }
+
+                var viewModel = new AdminPostDetailViewModel
+                {
+                    PostId = post.PostId,
+                    Title = string.IsNullOrEmpty(post.Title) ? "Không có tiêu đề" : post.Title,
+                    Content = string.IsNullOrEmpty(post.PostContent) ? "Không có nội dung" : post.PostContent,
+                    CreatorName = GetCreatorName(post.AccountName),
+                    Status = post.CurrentStatus ?? "P",
+                    CreatedAt = post.CreatedAt ?? DateTime.Now,
+                    AverageScore = averageScore,
+                    CommentsCount = comments.Count,
+                    Comments = comments.Select(c => new CommentViewModel
+                    {
+                        CommentId = c.CommentId,
+                        Content = c.Content ?? "Không có nội dung",
+                        CreatedAt = (DateTime)c.CreatedAt
+                    }).ToList()
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi tải chi tiết bài viết {PostId}", postId);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải chi tiết bài viết.";
+                return RedirectToAction("Posts");
+            }
+        }
+
+        private string GetCreatorName(dynamic account)
+        {
+            try
+            {
+                if (account?.UserProfile != null)
+                {
+                    var firstName = account.UserProfile.FirstName?.ToString() ?? "";
+                    var lastName = account.UserProfile.LastName?.ToString() ?? "";
+                    var fullName = $"{firstName} {lastName}".Trim();
+                    return string.IsNullOrEmpty(fullName) ? "Không xác định" : fullName;
+                }
+                return "Không xác định";
+            }
+            catch
+            {
+                return "Không xác định";
             }
         }
 

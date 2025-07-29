@@ -61,4 +61,6 @@ public partial class Account
     public virtual ICollection<QuickReplyTemplate> QuickReplyTemplates { get; set; } = new List<QuickReplyTemplate>();
 
     public virtual UserProfile? UserProfile { get; set; }
+
+    public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 }

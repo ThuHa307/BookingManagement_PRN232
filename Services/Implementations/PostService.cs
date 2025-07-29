@@ -1,7 +1,9 @@
 ﻿using BusinessObjects.Domains;
+using BusinessObjects.Dtos.ChatBot;
 using RentNest.Core.DTO;
 using Repositories.Interfaces;
 using Services.Interfaces;
+using System.Net.Http;
 
 namespace Services.Implementations
 {
@@ -37,5 +39,18 @@ namespace Services.Implementations
         {
             return await _postRepository.SavePost(dto);
         }
+
+        public async Task<List<Comment>> GetCommentsByPostId(int postId)
+        {
+            // Assuming there's a method in the repository to get comments by post ID
+            return await _postRepository.GetCommentsByPostId(postId);
+        }
+
+        public async Task<List<Post>> GetAllPosts()
+        {
+            return await _postRepository.GetAllPosts();
+
+        }
+
     }
 }

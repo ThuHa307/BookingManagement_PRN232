@@ -265,5 +265,101 @@ namespace WebMVC.API
                 PhoneNumber = account?.PhoneNumber ?? ""
             };
         }
+
+        public async Task<double?> ScoreAverageCommentAsync(string postContent, List<string> commentContents)
+        {
+            var dto = new PostWithCommentsDto
+            {
+                PostContent = postContent,
+                CommentContents = commentContents
+            };
+
+            var response = await _httpClient.PostAsJsonAsync("/api/v1/posts/score/average", dto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadFromJsonAsync<Dictionary<string, double>>();
+                return data != null && data.ContainsKey("averageScore") ? data["averageScore"] : (double?)null;
+            }
+
+            return null;
+        }
+
+        public async Task<List<Comment>> GetCommentsForPost(int postId)
+        {
+            var response = await _httpClient.GetAsync($"/api/v1/posts/{postId}/comments");
+            return await response.Content.ReadFromJsonAsync<List<Comment>>() ?? new List<Comment>();
+        }
+
+        public async Task<AccommodationDetailViewModel?> GetPostDetail(int postId)
+        {
+            var response = await _httpClient.GetAsync($"/api/v1/posts/{postId}/detail");
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<AccommodationDetailViewModel>();
+            }
+
+            return null;
+        }
+
+        // Cập nhật method GetAllPostsWithAccommodation trong PostApiService:
+
+        public async Task<List<AdminPostDto>> GetAllPostsWithAccommodation()
+        {
+            AddAuthorizationHeader();
+            try
+            {
+                // Sử dụng endpoint admin có sẵn
+                var response = await _httpClient.GetAsync("api/v1/posts/all-with-accommodation");
+                RemoveAuthorizationHeader();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new List<AdminPostDto>();
+                }
+
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var posts = JsonSerializer.Deserialize<List<JsonElement>>(jsonResponse, _jsonSerializerOptions);
+
+                var result = new List<AdminPostDto>();
+
+                foreach (var post in posts)
+                {
+                    var adminPost = new AdminPostDto
+                    {
+                        PostId = post.TryGetProperty("postId", out var postId) ? postId.GetInt32() : 0,
+                        Title = post.TryGetProperty("title", out var content) ? content.GetString() ?? "Không có tiêu đề" : "Không có tiêu đề",
+                        Content = post.TryGetProperty("content", out var contentProp) ? contentProp.GetString() ?? "Không có nội dung" : "Không có nội dung",
+                        CreatorName = post.TryGetProperty("creatorName", out var creator) ? creator.GetString() ?? "Không xác định" : "Không xác định",
+                        Status = post.TryGetProperty("currentStatus", out var status) ? status.GetString() ?? "P" : "P",
+                        CreatedAt = post.TryGetProperty("createdAt", out var createdAt) ?
+                            DateTime.TryParse(createdAt.GetString(), out var date) ? date : DateTime.Now
+                            : DateTime.Now
+                    };
+
+                    result.Add(adminPost);
+                }
+
+                return result;
+            }
+            catch (Exception)
+            {
+                RemoveAuthorizationHeader();
+                return new List<AdminPostDto>();
+            }
+        }
+
+        // Thêm DTO mới để mapping dữ liệu
+        public class AdminPostDto
+        {
+            public int PostId { get; set; }
+            public string Title { get; set; } = string.Empty;
+            public string Content { get; set; } = string.Empty;
+            public string CreatorName { get; set; } = string.Empty;
+            public string Status { get; set; } = string.Empty;
+            public DateTime CreatedAt { get; set; }
+        }
+
     }
 }

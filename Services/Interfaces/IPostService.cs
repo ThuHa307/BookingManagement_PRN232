@@ -10,5 +10,10 @@ namespace Services.Interfaces
         Task<List<Post>> GetAllPostsByUserAsync(int accountId);
         Task<int> SavePost(LandlordPostDto dto);
         Task<List<Post>> GetTopVipPostsAsync();
+
+        Task<List<Comment>> GetCommentsByPostId(int postId);
+
+        Task<List<Post>> GetAllPosts();
+
     }
 }
