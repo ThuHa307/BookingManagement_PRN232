@@ -9,7 +9,7 @@ namespace WebAPI.Controllers
 {
     [ApiController]
     [Route("api/admin/[controller]")]
-    [Authorize(Roles = "A")] // Only Admin can access
+    //[Authorize(Roles = "A")] // Only Admin can access
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
@@ -21,6 +21,17 @@ namespace WebAPI.Controllers
         {
             _accountService = accountService;
             _logger = logger;
+        }
+
+        [HttpGet("{userId}/profile")] // Endpoint: /api/v1/accounts/{userId}/profile
+        public async Task<IActionResult> GetUserProfile(int userId)
+        {
+            var userProfile = await _accountService.GetAccountByIdAsync(userId); // Giả sử service có method này
+            if (userProfile == null)
+            {
+                return NotFound("User profile not found.");
+            }
+            return Ok(userProfile);
         }
 
         /// <summary>

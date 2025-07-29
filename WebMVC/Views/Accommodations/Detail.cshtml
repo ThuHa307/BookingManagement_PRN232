@@ -73,7 +73,7 @@
                                 @foreach (var img in Model.ImageUrls)
                                 {
                                     <div class="swiper-slide">
-                                        <img src="@img" class="img-fluid rounded main-img" />
+                                        <img src="@(img.StartsWith("http") ? img : $"https://localhost:5290{img}")" class="img-fluid rounded main-img" />
                                     </div>
                                 }
                             </div>
@@ -84,7 +84,7 @@
                                 @foreach (var img in Model.ImageUrls)
                                 {
                                     <div class="swiper-slide">
-                                        <img src="@img" class="img-fluid thumb-img" />
+                                        <img src="@(img.StartsWith("http") ? img : $"https://localhost:5290{img}")" class="img-fluid thumb-img" />
                                     </div>
                                 }
                             </div>
