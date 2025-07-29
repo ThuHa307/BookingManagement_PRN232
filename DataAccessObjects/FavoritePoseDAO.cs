@@ -6,14 +6,10 @@ using System.Threading.Tasks;
 using BusinessObjects.Domains;
 using DataAccessObjects.DB;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace DataAccessObjects
 {
-
 
         public class FavoritePostDAO
         {
