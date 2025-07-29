@@ -52,6 +52,14 @@ namespace WebMVC
                      options.LoginPath = "/Auth/Login";
                      options.AccessDeniedPath = "/Auth/AccessDenied";
                  });
+
+
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy => policy.RequireRole("A"));
+            });
+            builder.Services.AddControllersWithViews();
+
             builder.Services.AddControllersWithViews()
         .AddJsonOptions(options =>
         {

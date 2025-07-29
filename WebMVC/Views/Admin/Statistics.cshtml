@@ -1,0 +1,111 @@
+﻿@model WebMVC.Models.AccountStatistics
+@{
+    ViewBag.Title = "Thống Kê Tài Khoản";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section header {
+    <h1 class="h3 mb-4 text-gray-800">Thống Kê Tài Khoán Theo Role</h1>
+}
+
+<div class="container-fluid">
+    <!-- Alerts -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
+    <!-- Statistics Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Phân Bố Tài Khoản</h6>
+        </div>
+        <div class="card-body">
+            @if (Model != null && Model.RoleDistribution != null && Model.RoleDistribution.Any())
+            {
+                var total = Model.RoleDistribution.Sum(r => r.Count);
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="roleTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th>Số Lượng</th>
+                                <th>Phần Trăm (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.RoleDistribution)
+                            {
+                                var percentage = total > 0 ? Math.Round((item.Count / (double)total) * 100, 2) : 0;
+                                <tr>
+                                    <td>@item.Role</td>
+                                    <td>@item.Count</td>
+                                    <td>@percentage%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-center">Không có dữ liệu thống kê.</p>
+            }
+        </div>
+    </div>
+
+    <!-- Additional Statistics -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Tổng Quan Thống Kê</h6>
+        </div>
+        <div class="card-body">
+            @if (Model != null)
+            {
+                <ul class="list-group">
+                    <li class="list-group-item">Tổng tài khoản: @Model.TotalAccounts</li>
+                    <li class="list-group-item">Tài khoản hoạt động: @Model.ActiveAccounts</li>
+                    <li class="list-group-item">Tài khoản không hoạt động: @Model.InactiveAccounts</li>
+                    <li class="list-group-item">Tài khoản trực tuyến: @Model.OnlineAccounts</li>
+                    <li class="list-group-item">Tài khoản có 2FA: @Model.TwoFactorEnabledAccounts</li>
+                </ul>
+            }
+            else
+            {
+                <p class="text-center">Không có dữ liệu tổng quan.</p>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#roleTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/vi.json"
+                },
+                "pageLength": 10,
+                "responsive": true,
+                "order": [[1, "desc"]]
+            });
+        });
+    </script>
+}

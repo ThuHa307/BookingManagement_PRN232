@@ -20,6 +20,10 @@ namespace WebMVC.Controllers
 
         public IActionResult Index()
         {
+            if (User.IsInRole("A"))
+            {
+                return RedirectToAction("Index", "Admin");
+            }
             return View();
         }
 

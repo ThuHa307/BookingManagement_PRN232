@@ -1,0 +1,267 @@
+﻿@model WebMVC.Models.DashboardViewModel
+@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section header {
+    <h1 class="h3 mb-4 text-gray-800">Dashboard</h1>
+}
+
+<!-- Content Row -->
+<div class="row">
+    @if (Model.Statistics != null)
+    {
+        <!-- Total Accounts Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Tổng tài khoản
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Statistics.TotalAccounts</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Accounts Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Tài khoản hoạt động
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Statistics.ActiveAccounts</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Online Users Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Đang trực tuyến
+                            </div>
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">@Model.Statistics.OnlineAccounts</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-globe fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2FA Enabled Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Bảo mật 2FA
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Statistics.TwoFactorEnabledAccounts</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shield-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="alert alert-warning" role="alert">
+                Không có dữ liệu thống kê để hiển thị.
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Content Row -->
+<div class="row">
+    <!-- Role Distribution Chart -->
+    <div class="col-xl-6 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Phân bố vai trò</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie pt-4 pb-2">
+                    <canvas id="roleChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Provider Distribution -->
+    <div class="col-xl-6 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Nhà cung cấp xác thực</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie pt-4 pb-2">
+                    <canvas id="authProviderChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+    <!-- Quick Actions -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thao tác nhanh</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <a href="@Url.Action("Accounts", "Admin")" class="btn btn-primary btn-block">
+                            <i class="fas fa-list"></i> Danh sách tài khoản
+                        </a>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <a href="@Url.Action("CreateAccount", "Admin")" class="btn btn-success btn-block">
+                            <i class="fas fa-plus"></i> Tạo tài khoản mới
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Hoạt động gần đây</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-user-plus text-success mr-2"></i>
+                            Tài khoản mới được tạo
+                        </div>
+                        <small class="text-muted">2 giờ trước</small>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-user-edit text-info mr-2"></i>
+                            Cập nhật thông tin tài khoản
+                        </div>
+                        <small class="text-muted">4 giờ trước</small>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-user-times text-warning mr-2"></i>
+                            Vô hiệu hóa tài khoản
+                        </div>
+                        <small class="text-muted">1 ngày trước</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @if (Model != null && Model.Statistics != null)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            // Role Distribution Chart (Doughnut)
+            var roleCtx = document.getElementById("roleChart").getContext('2d');
+            var roleChart = new Chart(roleCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(Model.Statistics.RoleDistribution.Select(r => r.Role))),
+                    datasets: [{
+                        data: @Html.Raw(Json.Serialize(Model.Statistics.RoleDistribution.Select(r => r.Count))),
+                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e'],
+                        hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#f4b619'],
+                        hoverBorderColor: "rgba(234, 236, 244, 1)",
+                    }],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    tooltips: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyFontColor: "#858796",
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        caretPadding: 10,
+                    },
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    cutoutPercentage: 80,
+                },
+            });
+
+            // Auth Provider Chart (Pie)
+            var authCtx = document.getElementById("authProviderChart").getContext('2d');
+            var authChart = new Chart(authCtx, {
+                type: 'pie',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(Model.Statistics.AuthProviderDistribution.Select(p => p.Provider))),
+                    datasets: [{
+                        data: @Html.Raw(Json.Serialize(Model.Statistics.AuthProviderDistribution.Select(p => p.Count))),
+                        backgroundColor: ['#e74a3b', '#f39c12', '#3498db'],
+                        hoverBackgroundColor: ['#c0392b', '#e67e22', '#2980b9'],
+                        hoverBorderColor: "rgba(234, 236, 244, 1)",
+                    }],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    tooltips: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyFontColor: "#858796",
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        caretPadding: 10,
+                    },
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                },
+            });
+        </script>
+    }
+}

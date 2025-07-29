@@ -1,0 +1,457 @@
+﻿@model BusinessObjects.Dtos.Account.AccountResponseDto
+@{
+    ViewBag.Title = "Chi tiết tài khoản";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section header {
+                Chi tiết tài khoản - @Model.Email
+}
+
+<div class="row">
+    <!-- Account Information -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Thông tin tài khoản</h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                         aria-labelledby="dropdownMenuLink">
+                        <a class="dropdown-item" href="@Url.Action("EditAccount", new { id = Model.AccountId })">
+                            <i class="fas fa-edit fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Chỉnh sửa
+                        </a>
+                        <button class="dropdown-item toggle-status" data-account-id="@Model.AccountId" data-current-status="@Model.IsActive">
+                            <i class="fas @(Model.IsActive == "A" ? "fa-ban" : "fa-check") fa-sm fa-fw mr-2 text-gray-400"></i>
+                            @(Model.IsActive == "A" ? "Vô hiệu hóa" : "Kích hoạt")
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        @if (Model.AccountId != int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0"))
+                        {
+                            <a class="dropdown-item text-danger" href="@Url.Action("DeleteAccount", new { id = Model.AccountId })"
+                               onclick="return confirm('Bạn có chắc muốn xóa tài khoản này?');">
+                                <i class="fas fa-trash fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Xóa
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Account ID:</strong></td>
+                                <td>@Model.AccountId</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td>@Model.Email</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Username:</strong></td>
+                                <td>@(Model.Username ?? "N/A")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Vai trò:</strong></td>
+                                <td>
+                                    @switch (Model.Role)
+                                    {
+                                        case "U":
+                                            <span class="badge badge-info">User</span>
+                                            break;
+                                        case "A":
+                                            <span class="badge badge-danger">Admin</span>
+                                            break;
+                                        case "S":
+                                            <span class="badge badge-warning">Staff</span>
+                                            break;
+                                        case "L":
+                                            <span class="badge badge-success">Landlord</span>
+                                            break;
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Trạng thái:</strong></td>
+                                <td>
+                                    @if (Model.IsActive == "A")
+                                    {
+                                        <span class="badge badge-success">Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">Bị khóa</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Đăng nhập qua:</strong></td>
+                                <td>
+                                    @switch (Model.AuthProvider)
+                                    {
+                                        case "local":
+                                            <i class="fas fa-key text-primary"></i>
+                                            <span>Local</span>
+                                            break;
+                                        case "google":
+                                            <i class="fab fa-google text-danger"></i>
+                                            <span>Google</span>
+                                            break;
+                                        case "facebook":
+                                            <i class="fab fa-facebook text-primary"></i>
+                                            <span>Facebook</span>
+                                            break;
+                                        default:
+                                            <span>@(Model.AuthProvider ?? "N/A")</span>
+                                            break;
+                                    }
+                                </td>
+                            </tr>
+                        </table>
+                    </div>                   
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Ngày tạo:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Cập nhật cuối:</strong> @Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Profile Information -->
+        @if (Model.UserProfile != null)
+        {
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Thông tin cá nhân</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <img src="@(Model.UserProfile.AvatarUrl ?? "~/Assets/Admin/img/undraw_profile.svg")"
+                                 class="img-profile rounded-circle mb-3"
+                                 style="width: 100px; height: 100px; object-fit: cover;">
+                        </div>
+                        <div class="col-md-9">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Họ và tên:</strong></td>
+                                    <td>@(Model.UserProfile.FirstName ?? "") @(Model.UserProfile.LastName ?? "")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Số điện thoại:</strong></td>
+                                    <td>@(Model.UserProfile.PhoneNumber ?? "N/A")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Địa chỉ:</strong></td>
+                                    <td>@(Model.UserProfile.Address ?? "N/A")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Profile tạo:</strong></td>
+                                    <td>@(Model.UserProfile.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Profile cập nhật:</strong></td>
+                                    <td>@(Model.UserProfile.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Activity Log -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Nhật ký hoạt động</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Hoạt động</th>
+                                <th>IP Address</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>Đăng nhập thành công</td>
+                                <td>192.168.1.100</td>
+                                <td><span class="badge badge-success">Thành công</span></td>
+                            </tr>
+                            <tr>
+                                <td>@DateTime.Now.AddHours(-2).ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>Cập nhật thông tin profile</td>
+                                <td>192.168.1.100</td>
+                                <td><span class="badge badge-info">Thành công</span></td>
+                            </tr>
+                            <tr>
+                                <td>@DateTime.Now.AddDays(-1).ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>Thay đổi mật khẩu</td>
+                                <td>192.168.1.100</td>
+                                <td><span class="badge badge-success">Thành công</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thao tác nhanh</h6>
+            </div>
+            <div class="card-body">
+                <a href="@Url.Action("EditAccount", new { id = Model.AccountId })" class="btn btn-warning btn-block mb-2">
+                    <i class="fas fa-edit"></i> Chỉnh sửa tài khoản
+                </a>
+                <a href="@Url.Action("Toggle", "Admin", new { id = Model.AccountId })"
+                   class="btn @(Model.IsActive == "A" ? "btn-secondary" : "btn-success") btn-block mb-2">
+                    <i class="fas @(Model.IsActive == "A" ? "fa-ban" : "fa-check")"></i>
+                    @(Model.IsActive == "A" ? "Vô hiệu hóa" : "Kích hoạt")
+                </a>
+                <button type="button" class="btn btn-success btn-block mb-2" onclick="sendNotification()">
+                    <i class="fas fa-envelope"></i> Gửi thông báo
+                </button>
+                @if (Model.AccountId != int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0"))
+            {
+                <a href="@Url.Action("DeleteAccount", "Admin", new { id = Model.AccountId })" 
+                   class="btn btn-danger btn-block">
+                    <i class="fas fa-trash"></i> Xóa tài khoản
+                </a>
+            }
+            </div>
+        </div>
+
+        <!-- Account Statistics -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thống kê</h6>
+            </div>
+            <div class="card-body">
+                <div class="row no-gutters">
+                    <div class="col-6 text-center border-right">
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@((DateTime.Now - Model.CreatedAt).Days)</div>
+                        <div class="text-xs font-weight-bold text-primary text-uppercase">Ngày tham gia</div>
+                    </div>
+                    <div class="col-6 text-center">
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            @(Model.LastActiveAt != null ? (DateTime.Now - Model.LastActiveAt.Value).Days : 0)
+                        </div>
+                        <div class="text-xs font-weight-bold text-success text-uppercase">Ngày offline</div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row no-gutters">
+                    <div class="col-6 text-center border-right">
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">24</div>
+                        <div class="text-xs font-weight-bold text-info text-uppercase">Lần đăng nhập</div>
+                    </div>
+                    <div class="col-6 text-center">
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">3</div>
+                        <div class="text-xs font-weight-bold text-warning text-uppercase">Cảnh báo</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Status -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Trạng thái tài khoản</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="mr-3">
+                        @if (Model.IsActive == "A")
+                        {
+                            <div class="icon-circle bg-success">
+                                <i class="fas fa-check text-white"></i>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="icon-circle bg-danger">
+                                <i class="fas fa-ban text-white"></i>
+                            </div>
+                        }
+                    </div>
+                    <div>
+                        <div class="font-weight-bold">
+                            @(Model.IsActive == "A" ? "Tài khoản hoạt động" : "Tài khoản bị khóa")
+                        </div>
+                        <div class="text-muted">
+                            @(Model.IsActive == "A" ? "Người dùng có thể đăng nhập bình thường" : "Người dùng không thể đăng nhập")
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center mb-3">
+                    <div class="mr-3">
+                        @if (Model.TwoFactorEnabled == true)
+                        {
+                            <div class="icon-circle bg-success">
+                                <i class="fas fa-shield-alt text-white"></i>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="icon-circle bg-warning">
+                                <i class="fas fa-shield-alt text-white"></i>
+                            </div>
+                        }
+                    </div>
+                    <div>
+                        <div class="font-weight-bold">
+                            @(Model.TwoFactorEnabled == true ? "2FA được bật" : "2FA chưa bật")
+                        </div>
+                        <div class="text-muted">
+                            @(Model.TwoFactorEnabled == true ? "Tài khoản được bảo vệ tốt" : "Nên bật 2FA để tăng bảo mật")
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <div class="mr-3">
+                        @if (Model.IsOnline == true)
+                        {
+                            <div class="icon-circle bg-info">
+                                <i class="fas fa-globe text-white"></i>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="icon-circle bg-secondary">
+                                <i class="fas fa-globe text-white"></i>
+                            </div>
+                        }
+                    </div>
+                    <div>
+                        <div class="font-weight-bold">
+                            @(Model.IsOnline == true ? "Đang trực tuyến" : "Offline")
+                        </div>
+                        <div class="text-muted">
+                            @if (Model.LastActiveAt != null)
+                            {
+                                <text>Hoạt động cuối: @Model.LastActiveAt.Value.ToString("dd/MM/yyyy HH:mm")</text>
+                            }
+                            else
+                            {
+                                <text>Chưa có thông tin hoạt động</text>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Send Notification Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1" role="dialog" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel">Gửi thông báo</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="notificationForm">
+                    <div class="form-group">
+                        <label for="notificationSubject">Tiêu đề <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="notificationSubject" placeholder="Nhập tiêu đề thông báo">
+                    </div>
+                    <div class="form-group">
+                        <label for="notificationMessage">Nội dung <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="notificationMessage" rows="4" placeholder="Nhập nội dung thông báo"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="notificationType">Loại thông báo</label>
+                        <select class="form-control" id="notificationType">
+                            <option value="info">Thông tin</option>
+                            <option value="warning">Cảnh báo</option>
+                            <option value="success">Thành công</option>
+                            <option value="danger">Quan trọng</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="confirmSendNotification()">
+                    <i class="fas fa-paper-plane"></i> Gửi thông báo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+
+
+        // Send notification
+        function sendNotification() {
+            $('#notificationModal').modal('show');
+            $('#notificationSubject').val('');
+            $('#notificationMessage').val('');
+            $('#notificationType').val('info');
+        }
+
+        function confirmSendNotification() {
+            var subject = $('#notificationSubject').val();
+            var message = $('#notificationMessage').val();
+            var type = $('#notificationType').val();
+
+            if (!subject || !message) {
+                showAlert('danger', 'Vui lòng nhập đầy đủ tiêu đề và nội dung thông báo');
+                return;
+            }
+
+            // Here you would make an AJAX call to send notification
+            $('#notificationModal').modal('hide');
+            showAlert('success', 'Gửi thông báo thành công!');
+        }
+
+        function showAlert(type, message) {
+            var alertClass = 'alert-' + type;
+            var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                           message +
+                           '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                           '<span aria-hidden="true">&times;</span>' +
+                           '</button>' +
+                           '</div>';
+
+            $('.container-fluid').prepend(alertHtml);
+
+            setTimeout(function() {
+                $('.alert').fadeOut();
+            }, 5000);
+        }
+    </script>
+}

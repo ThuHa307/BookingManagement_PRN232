@@ -23,15 +23,17 @@ namespace WebMVC.Controllers
     public class AuthController : Controller
     {
         private readonly AuthApiService _apiService;
+        private readonly AccountApiService _accountApiService;
         private readonly ILogger<AuthController> _logger;
         private readonly HttpClient _httpClient;
 
-        public AuthController(AuthApiService service, ILogger<AuthController> logger, IHttpClientFactory httpClientFactory)
+        public AuthController(AuthApiService service, ILogger<AuthController> logger, IHttpClientFactory httpClientFactory, AccountApiService accountApiService)
         {
             _apiService = service;
             _logger = logger;
             _httpClient = httpClientFactory.CreateClient();
             _httpClient.BaseAddress = new Uri("https://localhost:5290");
+            _accountApiService = accountApiService;
         }
 
         [HttpGet("Register")]
@@ -99,6 +101,8 @@ namespace WebMVC.Controllers
 
                         HttpContext.Session.SetString("RefreshToken", loginResponse.RefreshToken ?? string.Empty);
                         HttpContext.Session.SetString("AccessToken", loginResponse.AccessToken ?? string.Empty);
+                        //
+                        var userRole = jsonToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
 
                         var twoFactorStatus = await _apiService.GetTwoFactorStatusAsync(loginResponse.AccessToken!);
 
@@ -111,6 +115,11 @@ namespace WebMVC.Controllers
                         else
                         {
                             TempData["SuccessMessage"] = "Đăng nhập thành công!";
+                            // Kiểm tra vai trò và chuyển hướng
+                            if (userRole == "A")
+                            {
+                                return RedirectToAction("Index", "Admin");
+                            }
                             return RedirectToAction("Index", "Home");
                         }
                     }
@@ -158,7 +167,15 @@ namespace WebMVC.Controllers
                     HttpContext.Session.SetString("Role", userRoleFromToken!);
                     HttpContext.Session.SetString("UserId", userIdFromToken!);
                     TempData["SuccessMessage"] = "Xác thực 2FA thành công!";
-                    return RedirectToAction("Index", "Home");
+
+                    // Kiểm tra vai trò và chuyển hướng
+                    if (userRoleFromToken == "A")
+                    {
+                        return RedirectToAction("Index", "Admin");
+                    }
+                    else { return RedirectToAction("Index", "Home"); }
+                        
+
                 }
                 ModelState.AddModelError(string.Empty, "Mã xác thực không đúng.");
             }
@@ -209,6 +226,11 @@ namespace WebMVC.Controllers
             new Claim(ClaimTypes.Email, email),
             new Claim("Provider", provider)
         };
+                // Lấy thông tin vai trò từ API hoặc từ dữ liệu khác (giả sử bạn có API để lấy vai trò)
+                var userInfo = await _accountApiService.GetUserInfoAsync(accessToken);
+                var role = userInfo?.Role ?? "U"; // Mặc định là User nếu không lấy được
+                claims.Add(new Claim(ClaimTypes.Role, role));
+
 
                 // ✅ SỬ DỤNG CookieAuthenticationDefaults.AuthenticationScheme thay vì AuthSchemes.Cookie
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -266,10 +288,16 @@ namespace WebMVC.Controllers
                     HttpContext.Session.SetString("LoginProvider", provider);
                     HttpContext.Session.SetString("AccessToken", accessToken);
                     HttpContext.Session.SetString("RefreshToken", refreshToken);
+                    HttpContext.Session.SetString("Role", role);
 
                 }
 
                 TempData["SuccessMessage"] = "Đăng nhập thành công! Đang chuyển hướng đến trang chủ...";
+                // Chuyển hướng dựa trên vai trò
+                if (role == "A")
+                {
+                    return RedirectToAction("Index", "Admin");
+                }
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
