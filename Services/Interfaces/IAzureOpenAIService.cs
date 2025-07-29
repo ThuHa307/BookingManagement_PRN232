@@ -10,5 +10,7 @@ namespace Services.Interfaces
     {
         Task<string> GenerateDataPost(PostDataAIDto model);
         Task<string> ChatWithAIAsync(string userMessage);
+        Task<string> ScoreCommentAsync(CommentScoreDto model);
+        Task<double> ScoreAverageCommentAsync(PostWithCommentsDto model);
     }
 }

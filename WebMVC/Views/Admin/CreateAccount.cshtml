@@ -1,0 +1,212 @@
+﻿@model BusinessObjects.Dtos.Account.AccountCreateDto
+@{
+    ViewBag.Title = "Tạo tài khoản mới";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section header {
+    Tạo tài khoản mới
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thông tin tài khoản</h6>
+            </div>
+            <div class="card-body">
+                <form asp-action="CreateAccount" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input asp-for="Email" class="form-control" placeholder="Nhập địa chỉ email">
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Username" class="form-label">Username</label>
+                                <input asp-for="Username" class="form-control" placeholder="Nhập username (tùy chọn)">
+                                <span asp-validation-for="Username" class="text-danger"></span>
+                                <small class="form-text text-muted">3-50 ký tự, chỉ chứa chữ cái, số, dấu gạch dưới và gạch ngang</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Password" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input asp-for="Password" type="password" class="form-control" placeholder="Nhập mật khẩu">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                                <small class="form-text text-muted">Tối thiểu 6 ký tự, bao gồm chữ hoa, chữ thường và số</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Role" class="form-label">Vai trò <span class="text-danger">*</span></label>
+                                <select asp-for="Role" class="form-control">
+                                    <option value="">-- Chọn vai trò --</option>
+                                    <option value="U">User (Người dùng)</option>
+                                    <option value="A">Admin (Quản trị viên)</option>
+                                    <option value="S">Staff (Nhân viên)</option>
+                                    <option value="L">Landlord (Chủ nhà)</option>
+                                </select>
+                                <span asp-validation-for="Role" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="IsActive" class="form-label">Trạng thái</label>
+                                <select asp-for="IsActive" class="form-control">
+                                    <option value="A">Hoạt động</option>
+                                    <option value="D">Bị khóa</option>
+                                </select>
+                                <span asp-validation-for="IsActive" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="AuthProvider" class="form-label">Nhà cung cấp xác thực</label>
+                                <select asp-for="AuthProvider" class="form-control">
+                                    <option value="local">Local (Hệ thống)</option>
+                                    <option value="google">Google</option>
+                                    <option value="facebook">Facebook</option>
+                                </select>
+                                <span asp-validation-for="AuthProvider" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label asp-for="AuthProviderId" class="form-label">Auth Provider ID</label>
+                                <input asp-for="AuthProviderId" class="form-control" placeholder="ID từ nhà cung cấp (tùy chọn)">
+                                <span asp-validation-for="AuthProviderId" class="text-danger"></span>
+                                <small class="form-text text-muted">Chỉ cần thiết khi sử dụng Google/Facebook OAuth</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Tạo tài khoản
+                                </button>
+                                <a href="@Url.Action("Accounts")" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Quay lại
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Help Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Hướng dẫn</h6>
+            </div>
+            <div class="card-body">
+                <h6>Các vai trò:</h6>
+                <ul class="list-unstyled">
+                    <li><strong>User:</strong> Người dùng thông thường</li>
+                    <li><strong>Admin:</strong> Quản trị viên hệ thống</li>
+                    <li><strong>Staff:</strong> Nhân viên hỗ trợ</li>
+                    <li><strong>Landlord:</strong> Chủ nhà cho thuê</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>Yêu cầu mật khẩu:</h6>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> Tối thiểu 6 ký tự</li>
+                    <li><i class="fas fa-check text-success"></i> Có chữ hoa</li>
+                    <li><i class="fas fa-check text-success"></i> Có chữ thường</li>
+                    <li><i class="fas fa-check text-success"></i> Có số</li>
+                </ul>
+
+                <hr>
+
+                <h6>Nhà cung cấp xác thực:</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Local:</strong> Đăng nhập bằng email/password</li>
+                    <li><strong>Google:</strong> Đăng nhập qua Google OAuth</li>
+                    <li><strong>Facebook:</strong> Đăng nhập qua Facebook OAuth</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Recent Accounts -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Tài khoản mới tạo</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                        <div>
+                            <div class="font-weight-bold">admin@example.com</div>
+                            <small class="text-muted">Admin - 2 giờ trước</small>
+                        </div>
+                        <span class="badge badge-success badge-pill">A</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                        <div>
+                            <div class="font-weight-bold">user@example.com</div>
+                            <small class="text-muted">User - 4 giờ trước</small>
+                        </div>
+                        <span class="badge badge-info badge-pill">U</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                        <div>
+                            <div class="font-weight-bold">landlord@example.com</div>
+                            <small class="text-muted">Landlord - 1 ngày trước</small>
+                        </div>
+                        <span class="badge badge-warning badge-pill">L</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+
+        function showAlert(type, message) {
+            var alertClass = 'alert-' + type;
+            var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                           message +
+                           '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                           '<span aria-hidden="true">&times;</span>' +
+                           '</button>' +
+                           '</div>';
+            
+            $('.container-fluid').prepend(alertHtml);
+            
+            // Auto hide after 5 seconds
+            setTimeout(function() {
+                $('.alert').fadeOut();
+            }, 5000);
+        }
+    </script>
+}

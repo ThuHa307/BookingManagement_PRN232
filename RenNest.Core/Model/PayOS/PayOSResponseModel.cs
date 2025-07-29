@@ -14,6 +14,7 @@ namespace RentNest.Core.Model.PayOS
         // Thông tin cố định
         public string ItemName => "Gói đăng ký dịch vụ";
         public string PaymentMethod => "PayOS";
+        public string? CheckoutUrl { get; set; }
         public string Status => IsSuccess ? "Thành công" : "Đã hủy";
     }
 }

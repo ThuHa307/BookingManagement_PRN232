@@ -1,0 +1,371 @@
+﻿@model BusinessObjects.Dtos.Common.PagedResultDto<BusinessObjects.Dtos.Account.AccountResponseDto>
+@{
+    ViewBag.Title = "Quản lý tài khoản";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var filter = ViewBag.Filter as BusinessObjects.Dtos.Account.AccountFilterDto;
+}
+
+@section header {
+    Quản lý tài khoản
+}
+
+<!-- Filter Section -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Bộ lọc</h6>
+    </div>
+    <div class="card-body">
+        <form method="get" asp-action="Accounts">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="Email">Email</label>
+                        <input type="text" class="form-control" name="Email" value="@(filter?.Email ?? "")" placeholder="Nhập email...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="Username">Username</label>
+                        <input type="text" class="form-control" name="Username" value="@(filter?.Username ?? "")" placeholder="Nhập username...">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label for="Role">Vai trò</label>
+                        <select class="form-control" name="Role">
+                            <option value="">Tất cả</option>
+                            @if (filter?.Role == "U")
+                            {
+                                <option value="U" selected>User</option>
+                            }
+                            else
+                            {
+                                <option value="U">User</option>
+                            }
+                            @if (filter?.Role == "A")
+                            {
+                                <option value="A" selected>Admin</option>
+                            }
+                            else
+                            {
+                                <option value="A">Admin</option>
+                            }
+                            @if (filter?.Role == "S")
+                            {
+                                <option value="S" selected>Staff</option>
+                            }
+                            else
+                            {
+                                <option value="S">Staff</option>
+                            }
+                            @if (filter?.Role == "L")
+                            {
+                                <option value="L" selected>Landlord</option>
+                            }
+                            else
+                            {
+                                <option value="L">Landlord</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label for="IsActive">Trạng thái</label>
+                        <select class="form-control" name="IsActive">
+                            <option value="">Tất cả</option>
+                            @if (filter?.IsActive == "A")
+                            {
+                                <option value="A" selected>Hoạt động</option>
+                            }
+                            else
+                            {
+                                <option value="A">Hoạt động</option>
+                            }
+                            @if (filter?.IsActive == "D")
+                            {
+                                <option value="D" selected>Bị khóa</option>
+                            }
+                            else
+                            {
+                                <option value="D">Bị khóa</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label for="AuthProvider">Đăng nhập</label>
+                        <select class="form-control" name="AuthProvider">
+                            <option value="">Tất cả</option>
+                            @if (filter?.AuthProvider == "local")
+                            {
+                                <option value="local" selected>Local</option>
+                            }
+                            else
+                            {
+                                <option value="local">Local</option>
+                            }
+                            @if (filter?.AuthProvider == "google")
+                            {
+                                <option value="google" selected>Google</option>
+                            }
+                            else
+                            {
+                                <option value="google">Google</option>
+                            }
+                            @if (filter?.AuthProvider == "facebook")
+                            {
+                                <option value="facebook" selected>Facebook</option>
+                            }
+                            else
+                            {
+                                <option value="facebook">Facebook</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Tìm kiếm
+                    </button>
+                    <a href="@Url.Action("Accounts")" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i> Xóa bộ lọc
+                    </a>
+                    <a href="@Url.Action("CreateAccount")" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Tạo tài khoản mới
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Accounts Table -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            Danh sách tài khoản (@Model.TotalCount tài khoản)
+        </h6>
+    </div>
+    <div class="card-body">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["SuccessMessage"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="accountsTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th>Username</th>
+                        <th>Vai trò</th>
+                        <th>Trạng thái</th>
+                        <th>Đăng nhập</th>
+                        <th>2FA</th>
+                        <th>Trực tuyến</th>
+                        <th>Ngày tạo</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var account in Model.Items)
+                    {
+                        <tr>
+                            <td>@account.AccountId</td>
+                            <td>@account.Email</td>
+                            <td>@(account.Username ?? "N/A")</td>
+                            <td>
+                                @switch (account.Role)
+                                {
+                                    case "U":
+                                        <span class="badge badge-info">User</span>
+                                        break;
+                                    case "A":
+                                        <span class="badge badge-danger">Admin</span>
+                                        break;
+                                    case "S":
+                                        <span class="badge badge-warning">Staff</span>
+                                        break;
+                                    case "L":
+                                        <span class="badge badge-success">Landlord</span>
+                                        break;
+                                    default:
+                                        <span class="badge badge-light">Unknown</span>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                @if (account.IsActive == "A")
+                                {
+                                    <span class="badge badge-success">Hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-secondary">Bị khóa</span>
+                                }
+                            </td>
+                            <td>
+                                @switch (account.AuthProvider)
+                                {
+                                    case "local":
+                                        <i class="fas fa-key text-primary" title="Local"></i> <text>Local</text>
+                                        break;
+                                    case "google":
+                                        <i class="fab fa-google text-danger" title="Google"></i> <text>Google</text>
+                                        break;
+                                    case "facebook":
+                                        <i class="fab fa-facebook text-primary" title="Facebook"></i> <text>Facebook</text>
+                                        break;
+                                    default:
+                                        @account.AuthProvider
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                @if (account.TwoFactorEnabled == true)
+                                {
+                                    <i class="fas fa-shield-alt text-success" title="Bật 2FA"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-shield-alt text-muted" title="Tắt 2FA"></i>
+                                }
+                            </td>
+                            <td>
+                                @if (account.IsOnline == true)
+                                {
+                                    <span class="badge badge-success">Online</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-secondary">Offline</span>
+                                }
+                            </td>
+                            <td>@account.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="@Url.Action("AccountDetail", new { id = account.AccountId })"
+                                       class="btn btn-info btn-sm" style="padding: 6px 12px; height: 38px;" title="Xem chi tiết">
+                                        <i class="fas fa-eye mr-1"></i> View
+                                    </a>
+                                    <a href="@Url.Action("EditAccount", new { id = account.AccountId })"
+                                       class="btn btn-warning btn-sm" style="padding: 6px 12px; height: 38px;" title="Chỉnh sửa">
+                                        <i class="fas fa-edit mr-1"></i> Edit
+                                    </a>
+                                    <a href="@Url.Action("Toggle", new { id = account.AccountId })"
+                                       class="btn @(account.IsActive == "A" ? "btn-secondary" : "btn-success") btn-sm"
+                                       style="padding: 6px 12px; height: 38px;"
+                                       title="@(account.IsActive == "A" ? "Vô hiệu hóa" : "Kích hoạt")">
+                                        <i class="fas @(account.IsActive == "A" ? "fa-ban" : "fa-check") mr-1"></i>
+                                        @(account.IsActive == "A" ? "Disable" : "Enable")
+                                    </a>
+                                    @{
+                                        var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
+                                        var currentUserIdInt = int.Parse(currentUserId);
+                                    }
+                                    @if (account.AccountId != currentUserIdInt)
+                                    {
+                                        <a href="@Url.Action("DeleteAccount", new { id = account.AccountId })"
+                                           class="btn btn-danger btn-sm" style="padding: 6px 12px; height: 38px;" title="Xóa">
+                                            <i class="fas fa-trash mr-1"></i> Delete
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    @if (Model.HasPreviousPage)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Accounts", new {
+                                PageNumber = Model.PageNumber - 1,
+                                Email = filter?.Email,
+                                Username = filter?.Username,
+                                Role = filter?.Role,
+                                IsActive = filter?.IsActive,
+                                AuthProvider = filter?.AuthProvider
+                            })">Trước</a>
+                        </li>
+                    }
+
+                    @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                    {
+                        <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Accounts", new {
+                                PageNumber = i,
+                                Email = filter?.Email,
+                                Username = filter?.Username,
+                                Role = filter?.Role,
+                                IsActive = filter?.IsActive,
+                                AuthProvider = filter?.AuthProvider
+                            })">@i</a>
+                        </li>
+                    }
+
+                    @if (Model.HasNextPage)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Accounts", new {
+                                PageNumber = Model.PageNumber + 1,
+                                Email = filter?.Email,
+                                Username = filter?.Username,
+                                Role = filter?.Role,
+                                IsActive = filter?.IsActive,
+                                AuthProvider = filter?.AuthProvider
+                            })">Sau</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable with custom options
+            if (typeof initDataTable === 'function') {
+                initDataTable('#accountsTable', {
+                    "columnDefs": [
+                        { "orderable": false, "targets": [9] }
+                    ],
+                    "order": [[0, "desc"]] // Sort by ID descending
+                });
+            }
+
+            // Auto hide alerts after 5 seconds
+            setTimeout(function() {
+                $('.alert').fadeOut();
+            }, 5000);
+        });
+    </script>
+}

@@ -19,10 +19,13 @@ namespace WebMVC.Controllers
     public class PostsController : Controller
     {
         private readonly PostApiService _postApiService;
+        private readonly ILogger<PostsController> _logger; // Thêm biến logger
 
-        public PostsController(PostApiService postApiService)
+
+        public PostsController(PostApiService postApiService, ILogger<PostsController> logger) // Inject ILogger
         {
             _postApiService = postApiService;
+            _logger = logger; // Gán logger
         }
 
         // API endpoints (proxied through PostApiService)
@@ -68,7 +71,8 @@ namespace WebMVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Post_Landlord([FromForm] LandlordPostDto dto)
         {
-            dto.OwnerId = User.GetUserId(); // Still get OwnerId from MVC side for form submission
+            var userId = HttpContext.Session.GetString("UserId");
+            dto.OwnerId = Int32.Parse(userId); // Still get OwnerId from MVC side for form submission
 
             var (success, postId, amount) = await _postApiService.CreatePost(dto);
 
@@ -76,12 +80,12 @@ namespace WebMVC.Controllers
             {
                 success = success,
                 postId = postId,
-                amount = amount
+                amount = dto.TotalPrice,
             });
         }
 
 
-        [HttpPost]
+        [HttpPost("GeneratePostWithAI")]
         public async Task<IActionResult> GeneratePostWithAI([FromBody] PostDataAIDto model)
         {
             var content = await _postApiService.GeneratePostWithAI(model);
@@ -96,11 +100,11 @@ namespace WebMVC.Controllers
                 status = PostStatusHelper.ToDbValue(PostStatus.Pending);
             }
 
-            var accountId = User.GetUserId();
+            var accountId = Int32.TryParse(HttpContext.Session.GetString("UserId"), out var parsedId) ? parsedId : 0;
 
             if (accountId == 0) return Unauthorized(); // Or handle error appropriately
 
-            var (filteredPosts, statusCounts) = await _postApiService.GetManagePosts(status, accountId.Value);
+            var (filteredPosts, statusCounts) = await _postApiService.GetManagePosts(status, accountId);
 
             // You'd need to fetch user profile details separately or include them in ManagePostViewModel if needed for ViewBag.
             // For demonstration, let's assume ManagePostViewModel now contains enough data or we will fetch them if needed.

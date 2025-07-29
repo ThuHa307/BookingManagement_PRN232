@@ -59,7 +59,7 @@ namespace WebMVC.Controllers
                 return Redirect(referer);
             }
 
-            return RedirectToAction("Index", "Accommodations");
+            return RedirectToAction("Index", "Accommodations"); 
         }
     }
 }

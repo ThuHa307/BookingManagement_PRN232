@@ -30,8 +30,12 @@
                                         <i class="fas fa-user mr-2"></i>
                                         Thông tin cá nhân
                                     </a>
+                                     @if (Context.Session.GetString("Role") == "L")
+        {
                                     <a class="dropdown-item" href="/quan-ly-tin">Quản lý tin</a>
                                     <a class="dropdown-item" href="/tro-chuyen">Trò chuyện</a>
+                                    }
+                                    <a class="dropdown-item" href="/bai-viet-yeu-thich">Bài viết yêu thích</a>
                                     <a class="dropdown-item" asp-controller="Accommodations" asp-action="FavoritePost">Bài viết yêu thích</a>
 
                                     @{

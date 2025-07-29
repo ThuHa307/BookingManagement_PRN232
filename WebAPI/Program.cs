@@ -16,6 +16,10 @@ using DataAccessObjects;
 
 using DataAccessObjects;
 using RentNest.Core.Configs;
+using Net.payOS;
+using DataAccessObjects;
+using DataAccessObjects.DataAccessLayer.DAO;
+using Microsoft.AspNetCore.OData;
 
 
 namespace WebAPI
@@ -31,6 +35,16 @@ namespace WebAPI
             builder.Services.Configure<AzureOpenAISettings>(
             builder.Configuration.GetSection("AzureOpenAISettings"));
             builder.Services.AddHttpContextAccessor();
+            builder.Services.AddSingleton<PayOS>(sp =>
+{
+    // Thay các thông tin bên dưới bằng thông tin thật
+    var clientId = builder.Configuration["PayOS:ClientId"];
+    var apiKey = builder.Configuration["PayOS:ApiKey"];
+    var checksumKey = builder.Configuration["PayOS:ChecksumKey"];
+
+    return new PayOS(clientId, apiKey, checksumKey);
+});
+
             // ======= DEPENDENCY INJECTION =======
             // DAO
             builder.Services.AddScoped<AccommodationDAO>();
@@ -47,6 +61,8 @@ namespace WebAPI
             builder.Services.AddScoped<AccommodationAmenityDAO>();
             builder.Services.AddScoped<AccommodationTypeDAO>();
             builder.Services.AddScoped<PostPackageDetailDAO>();
+            builder.Services.AddScoped<PaymentDAO>();
+            builder.Services.AddScoped<FavoritePostDAO>();
             builder.Services.AddScoped<FavoritePostDAO>();
             builder.Services.AddScoped<AccountDAO>();
             builder.Services.AddScoped<UserProfileDAO>();
@@ -63,6 +79,11 @@ namespace WebAPI
             builder.Services.AddScoped<Repositories.Interfaces.IAccommodationTypeRepository, AccommodationTypeRepository>(); // <-- THÊM DÒNG NÀY
             builder.Services.AddScoped<Repositories.Interfaces.ITimeUnitPackageRepository, TimeUnitPackageRepository>();
 
+            // ===== ĐĂNG KÝ REPO CHAT ROOM =====
+            builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+            builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+            builder.Services.AddScoped<IQuickReplyTemplateRepository, QuickReplyTemplateRepository>();
+            // ===== END =====
 
             // Service
             builder.Services.AddScoped<IPasswordHasherCustom, PasswordHasherCustom>();
@@ -82,6 +103,11 @@ namespace WebAPI
             builder.Services.AddScoped<IAmenitiesSerivce, AmenitiesService>();
             builder.Services.AddScoped<IAccommodationTypeService, AccommodationTypeService>(); // <-- THÊM DÒNG NÀY
             builder.Services.AddScoped<ITimeUnitPackageService, TimeUnitPackageService>();
+            // ===== ĐĂNG KÝ SERVICE CHAT ROOM =====
+            builder.Services.AddScoped<IConversationService, ConversationService>();
+            builder.Services.AddScoped<IMessageService, MessageService>();
+            builder.Services.AddScoped<IQuickReplyTemplateService, QuickReplyTemplateService>();
+            // ===== END =====
             // ======= CONFIGURATION =======
             // --- JWT Authentication Configuration ---
 
@@ -115,6 +141,14 @@ namespace WebAPI
                 {
                     OnMessageReceived = context =>
                     {
+                        // Đặc biệt cho SignalR
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chathub"))
+                        {
+                           context.Token = accessToken;
+                        }
+                        // Nếu không phải SignalR thì lấy từ cookie như cũ
                         if (string.IsNullOrEmpty(context.Token))
                         {
                             context.Token = context.Request.Cookies["accessToken"];
@@ -194,6 +228,8 @@ namespace WebAPI
             builder.Services.Configure<AuthSettings>(builder.Configuration.GetSection("AuthSettings"));
 
             builder.Services.AddControllers();
+            builder.Services.AddControllers().AddOData(opt => opt.Select().Filter().OrderBy().Expand().SetMaxTop(100).Count().SkipToken());
+            builder.Services.AddSignalR();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
 
@@ -237,6 +273,7 @@ namespace WebAPI
             builder.Services.AddMemoryCache();
 
             var app = builder.Build();
+            app.UseStaticFiles();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -253,6 +290,7 @@ namespace WebAPI
 
 
             app.MapControllers();
+            app.MapHub<WebAPI.ChatHub>("/chathub");
 
             app.Run();
         }

@@ -94,6 +94,54 @@ namespace Services.Implementations
 
             return result;
         }
+        public async Task<string> ScoreCommentAsync(CommentScoreDto model)
+        {
+            var promptTemplate = PromptAI.PromptScoreComment;
+            var promptText = promptTemplate.Replace("{post_content}", model.PostContent)
+                                           .Replace("{comment_content}", model.CommentContent);
+
+            var messages = new List<ChatMessage>
+    {
+        new SystemChatMessage(promptText)
+    };
+
+            var client = new AzureOpenAIClient(
+                new Uri(_setting.Endpoint),
+                new AzureKeyCredential(_setting.ApiKey));
+            var chatClient = client.GetChatClient(_setting.DeploymentName);
+
+            var response = await chatClient.CompleteChatAsync(messages);
+            var result = response.Value.Content[0].Text;
+
+            return result.Trim(); // chỉ trả về số điểm
+        }
+        public async Task<double> ScoreAverageCommentAsync(PostWithCommentsDto model)
+        {
+            var totalScore = 0;
+            var validCount = 0;
+
+            foreach (var comment in model.CommentContents)
+            {
+                var scoreDto = new CommentScoreDto
+                {
+                    PostContent = model.PostContent,
+                    CommentContent = comment
+                };
+
+                var scoreText = await ScoreCommentAsync(scoreDto);
+
+                if (int.TryParse(scoreText, out int score))
+                {
+                    totalScore += score;
+                    validCount++;
+                }
+            }
+
+            if (validCount == 0) return 0;
+            return Math.Round((double)totalScore / validCount, 2);
+        }
+
+
 
 
     }

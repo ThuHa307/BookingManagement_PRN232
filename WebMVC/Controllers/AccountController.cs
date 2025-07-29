@@ -112,7 +112,10 @@ namespace WebMVC.Controllers
                 });
                 var userEmailFromToken = jsonToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
                 HttpContext.Session.SetString("Email", userEmailFromToken!);
-
+                var userRoleFromToken = jsonToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+                var userIdFromToken = jsonToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                HttpContext.Session.SetString("Role", userRoleFromToken!);
+                HttpContext.Session.SetString("UserId", userIdFromToken!);
             }
             TempData["SuccessMessage"] = "Đăng nhập thành công!";
             return RedirectToAction("Index", "Home");

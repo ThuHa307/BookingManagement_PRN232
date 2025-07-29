@@ -1,0 +1,166 @@
+﻿@model BusinessObjects.Dtos.Account.AccountUpdateDto
+@{
+    ViewBag.Title = "Chỉnh sửa tài khoản";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var accountId = ViewContext.RouteData.Values["id"];
+}
+
+@section header {
+    Chỉnh sửa tài khoản
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thông tin tài khoản</h6>
+            </div>
+            <div class="card-body">
+                <form asp-action="EditAccount" asp-route-id="@accountId" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input asp-for="Email" class="form-control" placeholder="Nhập địa chỉ email">
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Username" class="form-label">Username</label>
+                                <input asp-for="Username" class="form-control" placeholder="Nhập username (tùy chọn)">
+                                <span asp-validation-for="Username" class="text-danger"></span>
+                                <small class="form-text text-muted">3-50 ký tự, chỉ chứa chữ cái, số, dấu gạch dưới và gạch ngang</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Role" class="form-label">Vai trò <span class="text-danger">*</span></label>
+                                <select asp-for="Role" class="form-control">
+                                    <option value="">-- Chọn vai trò --</option>
+                                    <option value="U">User (Người dùng)</option>
+                                    <option value="A">Admin (Quản trị viên)</option>
+                                    <option value="S">Staff (Nhân viên)</option>
+                                    <option value="L">Landlord (Chủ nhà)</option>
+                                </select>
+                                <span asp-validation-for="Role" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="IsActive" class="form-label">Trạng thái <span class="text-danger">*</span></label>
+                                <select asp-for="IsActive" class="form-control">
+                                    <option value="A">Hoạt động</option>
+                                    <option value="D">Bị khóa</option>
+                                </select>
+                                <span asp-validation-for="IsActive" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>                   
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Cập nhật tài khoản
+                                </button>
+                                <a href="@Url.Action("AccountDetail", new { id = accountId })" class="btn btn-info">
+                                    <i class="fas fa-eye"></i> Xem chi tiết
+                                </a>
+                                <a href="@Url.Action("Accounts")" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Account Info Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thông tin bổ sung</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <img class="img-profile rounded-circle mb-3" 
+                         src="~/Assets/Admin/img/undraw_profile.svg" 
+                         style="width: 80px; height: 80px;">
+                    <h6 class="font-weight-bold">ID: @accountId</h6>
+                </div>
+                
+                <hr>
+                
+                <h6>Lưu ý quan trọng:</h6>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-exclamation-triangle text-warning"></i> Thay đổi vai trò sẽ ảnh hưởng đến quyền truy cập</li>
+                    <li><i class="fas fa-lock text-danger"></i> Khóa tài khoản sẽ ngăn người dùng đăng nhập</li>
+                    <li><i class="fas fa-shield-alt text-success"></i> 2FA tăng cường bảo mật tài khoản</li>
+                </ul>
+
+                <hr>
+
+                <h6>Các vai trò:</h6>
+                <ul class="list-unstyled">
+                    <li><span class="badge badge-info">User</span> Người dùng thông thường</li>
+                    <li><span class="badge badge-danger">Admin</span> Quản trị viên</li>
+                    <li><span class="badge badge-warning">Staff</span> Nhân viên</li>
+                    <li><span class="badge badge-success">Landlord</span> Chủ nhà</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thao tác nhanh</h6>
+            </div>
+            <div class="card-body">
+                <button type="button" class="btn btn-info btn-block mb-2" 
+                        onclick="toggleAccountStatus('@accountId', '@Model.IsActive')">
+                    <i class="fas @(Model.IsActive == "A" ? "fa-ban" : "fa-check")"></i> 
+                    @(Model.IsActive == "A" ? "Vô hiệu hóa" : "Kích hoạt") tài khoản
+                </button>
+                <a href="@Url.Action("AccountDetail", new { id = accountId })" class="btn btn-success btn-block">
+                    <i class="fas fa-chart-line"></i> Xem hoạt động
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    <script>
+        // Toggle account status
+        function toggleAccountStatus(accountId, currentStatus) {
+            var action = currentStatus === 'A' ? 'vô hiệu hóa' : 'kích hoạt';
+            
+           
+
+        function showAlert(type, message) {
+            var alertClass = 'alert-' + type;
+            var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                           message +
+                           '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                           '<span aria-hidden="true">&times;</span>' +
+                           '</button>' +
+                           '</div>';
+            
+            $('.container-fluid').prepend(alertHtml);
+            
+            setTimeout(function() {
+                $('.alert').fadeOut();
+            }, 5000);
+        }
+    </script>
+}
