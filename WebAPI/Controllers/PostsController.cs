@@ -199,5 +199,42 @@ namespace WebAPI.Controllers
 
             return Ok(viewModel);
         }
+        [HttpPost("score")]
+        public async Task<IActionResult> ScoreComment([FromBody] CommentScoreDto model)
+        {
+            if (string.IsNullOrWhiteSpace(model.PostContent) || string.IsNullOrWhiteSpace(model.CommentContent))
+            {
+                return BadRequest("PostContent và CommentContent không được để trống.");
+            }
+
+            try
+            {
+                var score = await _azureOpenAIService.ScoreCommentAsync(model);
+                return Ok(new { Score = score });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Đã xảy ra lỗi khi chấm điểm.", Error = ex.Message });
+            }
+        }
+        [HttpPost("score/average")]
+        public async Task<IActionResult> ScoreAverage([FromBody] PostWithCommentsDto model)
+        {
+            if (string.IsNullOrWhiteSpace(model.PostContent) || model.CommentContents == null || !model.CommentContents.Any())
+            {
+                return BadRequest("Bài viết và danh sách bình luận không được để trống.");
+            }
+
+            try
+            {
+                var avgScore = await _azureOpenAIService.ScoreAverageCommentAsync(model);
+                return Ok(new { AverageScore = avgScore });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Đã xảy ra lỗi khi tính điểm.", Error = ex.Message });
+            }
+        }
+
     }
 }

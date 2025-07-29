@@ -21,5 +21,24 @@ namespace RentNest.Core.Consts
             - Trả về hai phần:
                 Tiêu đề: ...
                 Nội dung: ...";
+        public const string PromptScoreComment = @"
+        Bạn là một giám khảo AI chuyên đánh giá các bình luận của người dùng trên mạng xã hội. Dưới đây là nội dung bài viết gốc và một bình luận tương ứng.
+
+        Bài viết:
+        {post_content}
+
+        Bình luận:
+        {comment_content}
+
+        Yêu cầu:
+        - Hãy chấm điểm bình luận dựa trên các tiêu chí sau (mỗi tiêu chí tối đa 2.5 điểm, tổng điểm tối đa là 10 điểm):
+            1. Mức độ liên quan đến nội dung bài viết.
+            2. Thái độ và ngôn từ sử dụng (lịch sự, tích cực, xây dựng...).
+            3. Độ sâu ý kiến (có đóng góp quan điểm rõ ràng, hợp lý, phân tích...).
+            4. Mức độ hữu ích hoặc truyền cảm hứng cho người khác.
+
+        Chỉ trả về một số nguyên từ 1 đến 10, không giải thích. Không kèm theo bất kỳ từ nào khác.
+
+        Điểm:";
     }
 }
