@@ -1,0 +1,100 @@
+﻿@using BusinessObjects.Consts;
+
+<div class="bg-light top" style="padding-bottom: 0.15rem; padding-top: 0.15rem; color: #000; position: relative; z-index: 1001;">
+    <div class="container">
+        <div class="row no-gutters d-flex align-items-start align-items-center px-md-0">
+            <div class="col-lg-12 d-block">
+                <div class="row d-flex">
+                    <div class="col-md pr-4 d-flex topper align-items-center">
+                        <div class="icon mr-2 d-flex justify-content-center align-items-center">
+                            <span class="icon-phone2"></span>
+                        </div>
+                        <span class="text">(+84) 941 673 660</span>
+                    </div>
+                    <div class="col-md pr-4 d-flex topper align-items-center">
+                        <div class="icon mr-2 d-flex justify-content-center align-items-center">
+                            <span class="icon-paper-plane"></span>
+                        </div>
+                        <span class="text">bluedream.company@email.com</span>
+                    </div>
+                    <div class="col-md-5 pr-4 d-flex topper align-items-center text-lg-right justify-content-end">
+                        @if (Context.Session.GetString("Email") != null)
+                        {
+                            <div class="dropdown">
+                                <a style="color: #000 !important" class="text dropdown-toggle" href="#" role="button"
+                                   id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Xin chào, @(Context.Session.GetString("UserName") ?? Context.Session.GetString("Email"))
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                                    <a class="dropdown-item" asp-controller="Admin" asp-action="Index">
+                                        <i class="fas fa-tachometer-alt mr-2"></i>
+                                        Dashboard
+                                    </a>
+                                    <a class="dropdown-item" asp-controller="Admin" asp-action="Accounts">
+                                        <i class="fas fa-users mr-2"></i>
+                                        Quản lý tài khoản
+                                    </a>
+                                    <a class="dropdown-item" asp-controller="Admin" asp-action="Statistics">
+                                        <i class="fas fa-chart-bar mr-2"></i>
+                                        Thống kê
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item text-danger" href="/Auth/Logout">
+                                        <i class="fas fa-sign-out-alt mr-2"></i>
+                                        Đăng xuất
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="mb-0 register-link">
+                                <a href="/Auth/Register" class="mr-3" style="color: #000 !important;">Đăng ký</a> |
+                                <a href="/Auth/Login" style="color: #000 !important;">Đăng nhập</a>
+                            </p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="height: 1px; background-color: #000; width: 90%; margin: 0 auto; position: relative; z-index: 1001;"></div>
+<nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light site-navbar-target" id="ftco-navbar">
+    <div class="container">
+        <!-- Logo -->
+        <a class="navbar-brand d-flex align-items-center" href="@Url.Action("Index", "Admin")" style="color: #fff !important;">
+            <img src="/images/blue-house-logo-2.png" alt="Logo" style="height: 40px; width: auto; margin-right: 10px;">
+            <span>Admin Panel</span>
+        </a>
+
+        <button class="navbar-toggler js-fh5co-nav-toggle fh5co-nav-toggle" type="button" data-toggle="collapse"
+                data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="oi oi-menu"></span> Menu
+        </button>
+
+        <div class="collapse navbar-collapse" id="ftco-nav">
+            <ul class="navbar-nav nav ml-auto">
+                <li class="nav-item"><a href="@Url.Action("Index", "Admin")" class="nav-link"><span>Dashboard</span></a></li>
+                <li class="nav-item"><a href="@Url.Action("Accounts", "Admin")" class="nav-link"><span>Quản lý tài khoản</span></a></li>
+                <li class="nav-item"><a href="@Url.Action("Statistics", "Admin")" class="nav-link"><span>Thống kê</span></a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let currentPath = window.location.pathname.toLowerCase();
+        let navLinks = document.querySelectorAll(".navbar-nav .nav-item a");
+
+        navLinks.forEach(link => {
+            let linkPath = link.getAttribute("href").toLowerCase();
+            if (currentPath.startsWith(linkPath)) {
+                link.classList.add("active");
+            } else {
+                link.classList.remove("active");
+            }
+        });
+    });
+</script>

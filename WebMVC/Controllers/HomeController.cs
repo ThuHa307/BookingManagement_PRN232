@@ -15,6 +15,10 @@ namespace WebMVC.Controllers
 
         public IActionResult Index()
         {
+            if (User.IsInRole("A"))
+            {
+                return RedirectToAction("Index", "Admin");
+            }
             return View();
         }
 
@@ -28,5 +32,6 @@ namespace WebMVC.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
     }
 }
