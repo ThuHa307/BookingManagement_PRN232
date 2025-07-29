@@ -101,6 +101,8 @@ namespace WebMVC.Controllers
             }
         }
 
+
+        [HttpGet]
         [Route("/bang-gia-tin")]
         public IActionResult PriceTable()
         {
