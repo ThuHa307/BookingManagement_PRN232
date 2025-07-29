@@ -1,5 +1,5 @@
 ﻿using BusinessObjects.Domains;
-using DataAccessObjects.DataAccessLayer.DAO;
+using DataAccessObjects;
 using Repositories.Interfaces;
 using System;
 using System.Collections.Generic;

@@ -4,6 +4,8 @@ using RentNest.Web.Models;
 using System.Text;
 using System.Text.Json;
 using WebMVC.Models;
+using System.Text.Json;
+using WebMVC.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using WebMVC.API;
@@ -69,7 +71,7 @@ namespace WebMVC.Controllers
                 var accommodations = await _odataService.GetAccommodationsAsync();
 
                 // Nếu có filter parameters, tạo OData query
-                if (!string.IsNullOrEmpty(roomType) || !string.IsNullOrEmpty(furnitureStatus) || 
+                if (!string.IsNullOrEmpty(roomType) || !string.IsNullOrEmpty(furnitureStatus) ||
                     bedroomCount.HasValue || bathroomCount.HasValue ||
                     !string.IsNullOrEmpty(provinceName) || !string.IsNullOrEmpty(districtName) ||
                     !string.IsNullOrEmpty(wardName) || area.HasValue || minMoney.HasValue || maxMoney.HasValue)
@@ -123,7 +125,7 @@ namespace WebMVC.Controllers
                     IsFavorite = favoritePostIds.Contains(dto.Id)
                 }).ToList();
 
-                ViewBag.HasSearched = !string.IsNullOrEmpty(roomType) || !string.IsNullOrEmpty(furnitureStatus) || 
+                ViewBag.HasSearched = !string.IsNullOrEmpty(roomType) || !string.IsNullOrEmpty(furnitureStatus) ||
                                      bedroomCount.HasValue || bathroomCount.HasValue ||
                                      !string.IsNullOrEmpty(provinceName) || !string.IsNullOrEmpty(districtName) ||
                                      !string.IsNullOrEmpty(wardName) || area.HasValue || minMoney.HasValue || maxMoney.HasValue;
@@ -139,6 +141,119 @@ namespace WebMVC.Controllers
             }
             return View(new List<AccommodationIndexViewModel>());
         }
+
+        public async Task<IActionResult> FavoritePost(string? roomType, string? furnitureStatus, int? bedroomCount, int? bathroomCount)
+        {
+            try
+            {
+                // Lấy dữ liệu từ TempData
+                string provinceName = TempData["provinceName"] as string;
+                string districtName = TempData["districtName"] as string;
+                string wardName = TempData["wardName"] as string;
+                double? area = double.TryParse(TempData["area"] as string, out var a) ? a : null;
+                decimal? minMoney = decimal.TryParse(TempData["minMoney"] as string, out var min) ? min : null;
+                decimal? maxMoney = decimal.TryParse(TempData["maxMoney"] as string, out var max) ? max : null;
+
+                // Set ViewBag data
+                ViewBag.ProvinceName = provinceName;
+                ViewBag.DistrictName = districtName;
+                ViewBag.WardName = wardName;
+                ViewBag.Area = area;
+                ViewBag.MinMoney = minMoney;
+                ViewBag.MaxMoney = maxMoney;
+
+                // Kiểm tra xem có search results từ TempData không
+                var roomListJson = TempData["RoomList"] as string;
+                var hasSearched = TempData["HasSearched"] as bool?;
+
+                if (!string.IsNullOrEmpty(roomListJson) && hasSearched == true)
+                {
+                    // Deserialize search results từ TempData
+                    var searchResults = JsonSerializer.Deserialize<List<AccommodationIndexViewModel>>(roomListJson, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                    ViewBag.HasSearched = true;
+                    return View(searchResults);
+                }
+
+                // Sử dụng OData API thay vì API cũ
+                var accommodations = await _odataService.GetAccommodationsAsync();
+
+                // Nếu có filter parameters, tạo OData query
+                if (!string.IsNullOrEmpty(roomType) || !string.IsNullOrEmpty(furnitureStatus) ||
+                    bedroomCount.HasValue || bathroomCount.HasValue ||
+                    !string.IsNullOrEmpty(provinceName) || !string.IsNullOrEmpty(districtName) ||
+                    !string.IsNullOrEmpty(wardName) || area.HasValue || minMoney.HasValue || maxMoney.HasValue)
+                {
+                    var filterQuery = _odataService.BuildODataFilterQuery(
+                        roomType: roomType,
+                        furnitureStatus: furnitureStatus,
+                        bedroomCount: bedroomCount,
+                        bathroomCount: bathroomCount,
+                        provinceName: provinceName,
+                        districtName: districtName,
+                        wardName: wardName,
+                        area: area,
+                        minMoney: minMoney,
+                        maxMoney: maxMoney);
+
+                    var completeQuery = _odataService.BuildCompleteODataQuery(filter: filterQuery);
+                    accommodations = await _odataService.GetAccommodationsAsync(completeQuery);
+                }
+
+                // Lấy danh sách favorite posts
+                int accountId = HttpContext.Session.GetInt32("AccountId") ?? 0;
+                var favoriteList = await _httpClient.GetFromJsonAsync<List<FavoritePostDto>>(
+                    $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/FavoritePost/account/{accountId}");
+
+                var favoritePostIds = favoriteList?.Select(f => f.PostId).ToHashSet() ?? new HashSet<int>();
+
+                // Convert AccommodationDto to AccommodationIndexViewModel
+                var model = accommodations.Select(dto => new AccommodationIndexViewModel
+                {
+                    Id = dto.Id,
+                    Status = dto.Status,
+                    Title = dto.Title,
+                    Price = dto.Price,
+                    Address = dto.Address,
+                    Area = dto.Area,
+                    BathroomCount = dto.BathroomCount,
+                    BedroomCount = dto.BedroomCount,
+                    ImageUrl = dto.ImageUrl,
+                    CreatedAt = dto.CreatedAt,
+                    DistrictName = dto.DistrictName,
+                    ProvinceName = dto.ProvinceName,
+                    WardName = dto.WardName,
+                    PackageTypeName = dto.PackageTypeName,
+                    TimeUnitName = dto.TimeUnitName,
+                    TotalPrice = dto.TotalPrice,
+                    StartDate = dto.StartDate,
+                    EndDate = dto.EndDate,
+                    ListImages = dto.ListImages,
+                    PhoneNumber = dto.PhoneNumber,
+                    IsFavorite = favoritePostIds.Contains(dto.Id)
+                }).ToList();
+
+                ViewBag.HasSearched = !string.IsNullOrEmpty(roomType) || !string.IsNullOrEmpty(furnitureStatus) ||
+                                     bedroomCount.HasValue || bathroomCount.HasValue ||
+                                     !string.IsNullOrEmpty(provinceName) || !string.IsNullOrEmpty(districtName) ||
+                                     !string.IsNullOrEmpty(wardName) || area.HasValue || minMoney.HasValue || maxMoney.HasValue;
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                // Log error and return empty list
+                ViewBag.HasSearched = false;
+                ViewBag.ErrorMessage = "Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.";
+                Console.WriteLine($"Error fetching accommodations: {ex.Message}");
+            }
+            return View(new List<AccommodationIndexViewModel>());
+        }
+
+
 
         [HttpPost]
         public async Task<IActionResult> Search(string provinceName, string districtName, string? wardName, double? area, decimal? minMoney, decimal? maxMoney, string provinceId, string districtId, string? wardId)

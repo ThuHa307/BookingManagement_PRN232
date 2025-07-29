@@ -18,7 +18,6 @@ using DataAccessObjects;
 using RentNest.Core.Configs;
 using Net.payOS;
 using DataAccessObjects;
-using DataAccessObjects.DataAccessLayer.DAO;
 using Microsoft.AspNetCore.OData;
 
 
@@ -62,6 +61,7 @@ namespace WebAPI
             builder.Services.AddScoped<AccommodationTypeDAO>();
             builder.Services.AddScoped<PostPackageDetailDAO>();
             builder.Services.AddScoped<PaymentDAO>();
+            builder.Services.AddScoped<FavoritePostDAO>();
             builder.Services.AddScoped<FavoritePostDAO>();
             builder.Services.AddScoped<AccountDAO>();
             builder.Services.AddScoped<UserProfileDAO>();

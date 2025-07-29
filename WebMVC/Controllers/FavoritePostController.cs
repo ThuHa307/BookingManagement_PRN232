@@ -52,6 +52,13 @@ namespace WebMVC.Controllers
                 await _favoriteService.DeleteAsync(fav.FavoriteId);
             }
 
+            // Quay về trang đã gọi request này
+            var referer = Request.Headers["Referer"].ToString();
+            if (!string.IsNullOrEmpty(referer))
+            {
+                return Redirect(referer);
+            }
+
             return RedirectToAction("Index", "Accommodations"); 
         }
     }

@@ -3,19 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+  using BusinessObjects.Domains;
+using DataAccessObjects.DB;
+using Microsoft.EntityFrameworkCore;
 
 namespace DataAccessObjects
 {
-    using BusinessObjects.Domains;
-    using DataAccessObjects.DB;
-    using Microsoft.EntityFrameworkCore;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
+    
 
-    namespace DataAccessLayer.DAO
-    {
+
+    
+
         public class FavoritePostDAO
         {
             public static async Task<List<FavoritePost>> GetAllAsync()
@@ -65,4 +63,3 @@ namespace DataAccessObjects
         }
     }
 
-}
