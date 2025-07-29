@@ -59,11 +59,13 @@ public partial class RentNestSystemContext : DbContext
     public virtual DbSet<TimeUnitPackage> TimeUnitPackages { get; set; }
 
     public virtual DbSet<UserProfile> UserProfiles { get; set; }
+    public virtual DbSet<Comment> Comments { get; set; }
+
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
 
-        => optionsBuilder.UseSqlServer("Server=DESKTOP-TH6U346\\SQLEXPRESS;Database=RentNestSystem;User Id=sa; Password=123;Trusted_Connection=True;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer("Server=(local);Database=RentNestSystem;User Id=sa; Password=ha3072003;Trusted_Connection=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -808,6 +810,50 @@ public partial class RentNestSystemContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_UserProfile_Account");
         });
+
+        modelBuilder.Entity<Comment>(entity =>
+        {
+            entity.HasKey(e => e.CommentId).HasName("PK__Comment__C3B4DFAA7F60E2B2");
+
+            entity.ToTable("Comment");
+
+            entity.HasIndex(e => e.PostId, "IX_Comment_PostId");
+
+            entity.HasIndex(e => e.ParentCommentId, "IX_Comment_ParentCommentId");
+
+            entity.Property(e => e.CommentId).HasColumnName("comment_id");
+            entity.Property(e => e.PostId).HasColumnName("post_id");
+            entity.Property(e => e.AccountId).HasColumnName("account_id");
+            entity.Property(e => e.ParentCommentId).HasColumnName("parent_comment_id");
+            entity.Property(e => e.Content).HasColumnName("content");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.IsEdited)
+                .HasDefaultValue(false)
+                .HasColumnName("is_edited");
+
+            entity.HasOne(d => d.Account).WithMany(p => p.Comments)
+                .HasForeignKey(d => d.AccountId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comment_Account");
+
+            entity.HasOne(d => d.Post).WithMany(p => p.Comments)
+                .HasForeignKey(d => d.PostId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comment_Post");
+
+            entity.HasOne(d => d.ParentComment).WithMany(p => p.ChildComments)
+                .HasForeignKey(d => d.ParentCommentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comment_Parent");
+        });
+
 
         OnModelCreatingPartial(modelBuilder);
     }

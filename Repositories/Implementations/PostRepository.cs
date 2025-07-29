@@ -71,7 +71,7 @@ namespace Repositories.Implementations
 					WardName = wardName,
 					DistrictName = districtName,
 					ProvinceName = provinceName,
-					Price = dto.Price,
+					Price = dto.MyPrice,
 					Area = dto.Area,
 					TypeId = dto.AccommodationTypeId,
 					OwnerId = dto.OwnerId ?? 0,
