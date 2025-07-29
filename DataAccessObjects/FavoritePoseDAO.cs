@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+  using BusinessObjects.Domains;
+using DataAccessObjects.DB;
+using Microsoft.EntityFrameworkCore;
 
 namespace DataAccessObjects
 {
-    using BusinessObjects.Domains;
-    using DataAccessObjects.DB;
-    using Microsoft.EntityFrameworkCore;
+    
 
 
-    {
+    
 
         public class FavoritePostDAO
         {
@@ -62,4 +63,3 @@ namespace DataAccessObjects
         }
     }
 
-}

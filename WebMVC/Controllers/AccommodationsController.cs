@@ -71,7 +71,7 @@ namespace WebMVC.Controllers
                 var accommodations = await _odataService.GetAccommodationsAsync();
 
                 // Nếu có filter parameters, tạo OData query
-                if (!string.IsNullOrEmpty(roomType) || !string.IsNullOrEmpty(furnitureStatus) || 
+                if (!string.IsNullOrEmpty(roomType) || !string.IsNullOrEmpty(furnitureStatus) ||
                     bedroomCount.HasValue || bathroomCount.HasValue ||
                     !string.IsNullOrEmpty(provinceName) || !string.IsNullOrEmpty(districtName) ||
                     !string.IsNullOrEmpty(wardName) || area.HasValue || minMoney.HasValue || maxMoney.HasValue)
@@ -97,56 +97,40 @@ namespace WebMVC.Controllers
                 var favoriteList = await _httpClient.GetFromJsonAsync<List<FavoritePostDto>>(
                     $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/FavoritePost/account/{accountId}");
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var jsonContent = await response.Content.ReadAsStringAsync();
-                    var options = new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    };
-                    var apiResponse = JsonSerializer.Deserialize<AccommodationApiResponse>(jsonContent, options);
-                    int accountId = HttpContext.Session.GetInt32("AccountId") ?? 0;
-                    var favoriteList = await _httpClient.GetFromJsonAsync<List<FavoritePostDto>>(
-                        $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/FavoritePost/account/{accountId}");
                 var favoritePostIds = favoriteList?.Select(f => f.PostId).ToHashSet() ?? new HashSet<int>();
 
-                    var favoritePostIds = favoriteList?.Select(f => f.PostId).ToHashSet() ?? new HashSet<int>();
-
-                    // Convert AccommodationDto to AccommodationIndexViewModel
-                    var model = apiResponse.Data.Select(dto => new AccommodationIndexViewModel
-                    {
-                        Id = dto.Id,
-                        Status = dto.Status,
-                        Title = dto.Title,
-                        Price = dto.Price,
-                        Address = dto.Address,
-                        Area = dto.Area,
-                        BathroomCount = dto.BathroomCount,
-                        BedroomCount = dto.BedroomCount,
-                        ImageUrl = dto.ImageUrl,
-                        CreatedAt = dto.CreatedAt,
-                        DistrictName = dto.DistrictName,
-                        ProvinceName = dto.ProvinceName,
-                        WardName = dto.WardName,
-                        PackageTypeName = dto.PackageTypeName,
-                        TimeUnitName = dto.TimeUnitName,
-                        TotalPrice = dto.TotalPrice,
-                        StartDate = dto.StartDate,
-                        EndDate = dto.EndDate,
-                        ListImages = dto.ListImages,
-                        PhoneNumber = dto.PhoneNumber,
-                        IsFavorite = favoritePostIds.Contains(dto.Id)
-                    }).ToList();
-
-                    ViewBag.HasSearched = apiResponse.HasSearched;
-                    return View(model);
-                }
-                else
+                // Convert AccommodationDto to AccommodationIndexViewModel
+                var model = accommodations.Select(dto => new AccommodationIndexViewModel
                 {
-                    // Fallback to empty list if API fails
-                    ViewBag.HasSearched = false;
-                    return View(new List<AccommodationIndexViewModel>());
-                }
+                    Id = dto.Id,
+                    Status = dto.Status,
+                    Title = dto.Title,
+                    Price = dto.Price,
+                    Address = dto.Address,
+                    Area = dto.Area,
+                    BathroomCount = dto.BathroomCount,
+                    BedroomCount = dto.BedroomCount,
+                    ImageUrl = dto.ImageUrl,
+                    CreatedAt = dto.CreatedAt,
+                    DistrictName = dto.DistrictName,
+                    ProvinceName = dto.ProvinceName,
+                    WardName = dto.WardName,
+                    PackageTypeName = dto.PackageTypeName,
+                    TimeUnitName = dto.TimeUnitName,
+                    TotalPrice = dto.TotalPrice,
+                    StartDate = dto.StartDate,
+                    EndDate = dto.EndDate,
+                    ListImages = dto.ListImages,
+                    PhoneNumber = dto.PhoneNumber,
+                    IsFavorite = favoritePostIds.Contains(dto.Id)
+                }).ToList();
+
+                ViewBag.HasSearched = !string.IsNullOrEmpty(roomType) || !string.IsNullOrEmpty(furnitureStatus) ||
+                                     bedroomCount.HasValue || bathroomCount.HasValue ||
+                                     !string.IsNullOrEmpty(provinceName) || !string.IsNullOrEmpty(districtName) ||
+                                     !string.IsNullOrEmpty(wardName) || area.HasValue || minMoney.HasValue || maxMoney.HasValue;
+
+                return View(model);
             }
             catch (Exception ex)
             {
@@ -156,8 +140,8 @@ namespace WebMVC.Controllers
                 Console.WriteLine($"Error fetching accommodations: {ex.Message}");
             }
             return View(new List<AccommodationIndexViewModel>());
-
         }
+
         public async Task<IActionResult> FavoritePost(string? roomType, string? furnitureStatus, int? bedroomCount, int? bathroomCount)
         {
             try
@@ -194,77 +178,38 @@ namespace WebMVC.Controllers
                     return View(searchResults);
                 }
 
-                // Build query string for API call
-                var queryParams = new List<string>();
+                // Sử dụng OData API thay vì API cũ
+                var accommodations = await _odataService.GetAccommodationsAsync();
 
-                if (!string.IsNullOrEmpty(roomType))
-                    queryParams.Add($"roomType={Uri.EscapeDataString(roomType)}");
-                if (!string.IsNullOrEmpty(furnitureStatus))
-                    queryParams.Add($"furnitureStatus={Uri.EscapeDataString(furnitureStatus)}");
-                if (bedroomCount.HasValue)
-                    queryParams.Add($"bedroomCount={bedroomCount.Value}");
-                if (bathroomCount.HasValue)
-                    queryParams.Add($"bathroomCount={bathroomCount.Value}");
-                if (!string.IsNullOrEmpty(provinceName))
-                    queryParams.Add($"provinceName={Uri.EscapeDataString(provinceName)}");
-                if (!string.IsNullOrEmpty(districtName))
-                    queryParams.Add($"districtName={Uri.EscapeDataString(districtName)}");
-                if (!string.IsNullOrEmpty(wardName))
-                    queryParams.Add($"wardName={Uri.EscapeDataString(wardName)}");
-                if (area.HasValue)
-                    queryParams.Add($"area={area.Value}");
-                if (minMoney.HasValue)
-                    queryParams.Add($"minMoney={minMoney.Value}");
-                if (maxMoney.HasValue)
-                    queryParams.Add($"maxMoney={maxMoney.Value}");
-
-                var queryString = string.Join("&", queryParams);
-                string apiUrl = $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/accommodations";
-                if (!string.IsNullOrEmpty(queryString))
-                    apiUrl += $"?{queryString}";
-
-                // Call WebAPI
-                var response = await _httpClient.GetAsync(apiUrl);
-
-                if (response.IsSuccessStatusCode)
+                // Nếu có filter parameters, tạo OData query
+                if (!string.IsNullOrEmpty(roomType) || !string.IsNullOrEmpty(furnitureStatus) ||
+                    bedroomCount.HasValue || bathroomCount.HasValue ||
+                    !string.IsNullOrEmpty(provinceName) || !string.IsNullOrEmpty(districtName) ||
+                    !string.IsNullOrEmpty(wardName) || area.HasValue || minMoney.HasValue || maxMoney.HasValue)
                 {
-                    var jsonContent = await response.Content.ReadAsStringAsync();
-                    var options = new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    };
-                    var apiResponse = JsonSerializer.Deserialize<AccommodationApiResponse>(jsonContent, options);
-                    int accountId = HttpContext.Session.GetInt32("AccountId") ?? 0;
-                    var favoriteList = await _httpClient.GetFromJsonAsync<List<FavoritePostDto>>(
-                        $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/FavoritePost/account/{accountId}");
+                    var filterQuery = _odataService.BuildODataFilterQuery(
+                        roomType: roomType,
+                        furnitureStatus: furnitureStatus,
+                        bedroomCount: bedroomCount,
+                        bathroomCount: bathroomCount,
+                        provinceName: provinceName,
+                        districtName: districtName,
+                        wardName: wardName,
+                        area: area,
+                        minMoney: minMoney,
+                        maxMoney: maxMoney);
 
-                    var favoritePostIds = favoriteList?.Select(f => f.PostId).ToHashSet() ?? new HashSet<int>();
+                    var completeQuery = _odataService.BuildCompleteODataQuery(filter: filterQuery);
+                    accommodations = await _odataService.GetAccommodationsAsync(completeQuery);
+                }
 
-                    // Convert AccommodationDto to AccommodationIndexViewModel
-                    var model = apiResponse.Data.Select(dto => new AccommodationIndexViewModel
-                    {
-                        Id = dto.Id,
-                        Status = dto.Status,
-                        Title = dto.Title,
-                        Price = dto.Price,
-                        Address = dto.Address,
-                        Area = dto.Area,
-                        BathroomCount = dto.BathroomCount,
-                        BedroomCount = dto.BedroomCount,
-                        ImageUrl = dto.ImageUrl,
-                        CreatedAt = dto.CreatedAt,
-                        DistrictName = dto.DistrictName,
-                        ProvinceName = dto.ProvinceName,
-                        WardName = dto.WardName,
-                        PackageTypeName = dto.PackageTypeName,
-                        TimeUnitName = dto.TimeUnitName,
-                        TotalPrice = dto.TotalPrice,
-                        StartDate = dto.StartDate,
-                        EndDate = dto.EndDate,
-                        ListImages = dto.ListImages,
-                        PhoneNumber = dto.PhoneNumber,
-                        IsFavorite = favoritePostIds.Contains(dto.Id)
-                    }).ToList();
+                // Lấy danh sách favorite posts
+                int accountId = HttpContext.Session.GetInt32("AccountId") ?? 0;
+                var favoriteList = await _httpClient.GetFromJsonAsync<List<FavoritePostDto>>(
+                    $"{_configuration["ApiSettings:ApiBaseUrl"]}/api/FavoritePost/account/{accountId}");
+
+                var favoritePostIds = favoriteList?.Select(f => f.PostId).ToHashSet() ?? new HashSet<int>();
+
                 // Convert AccommodationDto to AccommodationIndexViewModel
                 var model = accommodations.Select(dto => new AccommodationIndexViewModel
                 {
@@ -291,7 +236,7 @@ namespace WebMVC.Controllers
                     IsFavorite = favoritePostIds.Contains(dto.Id)
                 }).ToList();
 
-                ViewBag.HasSearched = !string.IsNullOrEmpty(roomType) || !string.IsNullOrEmpty(furnitureStatus) || 
+                ViewBag.HasSearched = !string.IsNullOrEmpty(roomType) || !string.IsNullOrEmpty(furnitureStatus) ||
                                      bedroomCount.HasValue || bathroomCount.HasValue ||
                                      !string.IsNullOrEmpty(provinceName) || !string.IsNullOrEmpty(districtName) ||
                                      !string.IsNullOrEmpty(wardName) || area.HasValue || minMoney.HasValue || maxMoney.HasValue;
@@ -307,6 +252,8 @@ namespace WebMVC.Controllers
             }
             return View(new List<AccommodationIndexViewModel>());
         }
+
+
 
         [HttpPost]
         public async Task<IActionResult> Search(string provinceName, string districtName, string? wardName, double? area, decimal? minMoney, decimal? maxMoney, string provinceId, string districtId, string? wardId)
