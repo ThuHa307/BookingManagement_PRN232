@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Net.payOS;
@@ -14,7 +15,7 @@ namespace WebMVC
             builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
             // ✅ Đăng ký HttpClient & các API services cho MVC gọi API bên ngoài
-            builder.Services.AddScoped<AccountApiService>();
+            //builder.Services.AddScoped<AccountApiService>();
             builder.Services.AddScoped<AuthApiService>();
             builder.Services.AddScoped<FavoritePostApiService>();
             builder.Services.AddScoped<ProfileApiService>();
@@ -34,6 +35,15 @@ namespace WebMVC
             {
                 client.BaseAddress = new Uri(apiBaseUrl);
             });
+
+            builder.Services.AddHttpClient<AccountApiService>((sp, client) =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                client.BaseAddress = new Uri(config["ApiSettings:ApiBaseUrl"]!);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            });
+
 
             builder.Services.AddHttpClient();
             builder.Services.AddHttpContextAccessor();

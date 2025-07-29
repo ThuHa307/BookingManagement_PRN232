@@ -122,5 +122,9 @@ namespace WebMVC.Controllers
 
             return View("User/ManagePost", filteredPosts);
         }
+
+        
+
+
     }
 }

@@ -36,4 +36,7 @@ public partial class Post
     public virtual ICollection<PostPackageDetail> PostPackageDetails { get; set; } = new List<PostPackageDetail>();
 
     public virtual ICollection<PromoUsage> PromoUsages { get; set; } = new List<PromoUsage>();
+
+    public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
 }

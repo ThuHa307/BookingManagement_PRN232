@@ -171,5 +171,16 @@ namespace Repositories.Implementations
 
 			return "/uploads/" + filename;
 		}
-	}
+
+        public async Task<List<Comment>> GetCommentsByPostId(int postId)
+        {
+            return await _postDAO.GetCommentsByPostId(postId);
+        }
+
+        public async Task<List<Post>> GetAllPosts()
+        {
+            return await _postDAO.GetAllPosts();
+        }
+
+    }
 }

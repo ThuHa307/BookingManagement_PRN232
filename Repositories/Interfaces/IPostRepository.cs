@@ -15,5 +15,9 @@ namespace Repositories.Interfaces
         Task<List<Post>> GetAllPostsByUserAsync(int accountId);
         Task<List<Post>> GetTopVipPostsAsync();
         Task<int> SavePost(LandlordPostDto dto);
+
+        Task<List<Comment>> GetCommentsByPostId(int postId);
+
+        Task<List<Post>> GetAllPosts();
     }
 }

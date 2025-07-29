@@ -194,7 +194,8 @@ namespace WebAPI.Controllers
                 TimeUnitName = latestPackage?.Pricing?.TimeUnit?.TimeUnitName ?? "",
                 TotalPrice = latestPackage?.TotalPrice ?? 0,
                 StartDate = latestPackage?.StartDate,
-                EndDate = latestPackage?.EndDate
+                EndDate = latestPackage?.EndDate,
+                CurrentStatus = post.CurrentStatus
             };
 
             return Ok(viewModel);
@@ -235,6 +236,76 @@ namespace WebAPI.Controllers
                 return StatusCode(500, new { Message = "Đã xảy ra lỗi khi tính điểm.", Error = ex.Message });
             }
         }
+
+        [HttpGet("{postId:int}/comments")]
+        public async Task<IActionResult> GetCommentsForPost(int postId)
+        {
+            var comments = await _postService.GetCommentsByPostId(postId);
+            var result = comments.Select(c => new { c.CommentId, c.Content, c.CreatedAt }).ToList();
+            return Ok(result);
+        }
+
+        [HttpGet("admin")]
+        public async Task<IActionResult> GetAllPostsForAdmin()
+        {
+            var posts = await _postService.GetAllPostsWithAccommodation();
+
+            var result = posts.Select(p => new
+            {
+                PostId = p.PostId,
+                Content = p.Content,
+                CreatedAt = p.CreatedAt,
+                Status = p.CurrentStatus,
+                CreatorName = (p.Account?.UserProfile?.FirstName ?? "") + " " + (p.Account?.UserProfile?.LastName ?? "")
+            }).ToList();
+
+            return Ok(result);
+        }
+
+        // Thêm vào PostsController.cs (API)
+
+        [HttpGet("all-with-accommodation")]
+        public async Task<IActionResult> GetAllPostsWithAccommodation()
+        {
+            try
+            {
+                var posts = await _postService.GetAllPosts();
+
+                var result = posts.Select(p => new
+                {
+                    PostId = p.PostId,
+                    Title = p.Title ?? "Không có tiêu đề",
+                    Content = p.Content ?? "Không có nội dung",
+                    CreatedAt = p.CreatedAt,
+                    CurrentStatus = p.CurrentStatus,
+                    Account = new
+                    {
+                        AccountId = p.Account?.AccountId ?? 0,
+                        UserProfile = new
+                        {
+                            FirstName = p.Account?.UserProfile?.FirstName ?? "",
+                            LastName = p.Account?.UserProfile?.LastName ?? "",
+                            AvatarUrl = p.Account?.UserProfile?.AvatarUrl ?? ""
+                        }
+                    },
+                    Accommodation = p.Accommodation != null ? new
+                    {
+                        AccommodationId = p.Accommodation.AccommodationId,
+                        Address = p.Accommodation.Address ?? "",
+                        Price = p.Accommodation.Price,
+                        Area = p.Accommodation.Area
+                    } : null
+                }).ToList();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Đã xảy ra lỗi khi lấy danh sách bài viết.", Error = ex.Message });
+            }
+        }
+
+
 
     }
 }

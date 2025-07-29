@@ -137,5 +137,58 @@ namespace RentNest.Infrastructure.DataAccess
         {
             return await _context.Database.BeginTransactionAsync();
         }
+
+        public async Task<List<Comment>> GetCommentsByPostId(int postId)
+        {
+            return await _context.Comments
+                .Include(c => c.Account)
+                    .ThenInclude(a => a.UserProfile)
+                .Where(c => c.PostId == postId)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<List<Post>> GetAllPosts()
+        {
+            var posts = await _dbSet.AsNoTracking()
+                .Include(p => p.Accommodation)
+                    .ThenInclude(a => a.AccommodationImages)
+                .Include(p => p.Accommodation)
+                    .ThenInclude(a => a.AccommodationDetail)
+                .Include(p => p.PostPackageDetails)
+                    .ThenInclude(p => p.Pricing)
+                        .ThenInclude(t => t.PackageType)
+                .Include(p => p.PostPackageDetails)
+                    .ThenInclude(d => d.Pricing)
+                        .ThenInclude(p => p.TimeUnit)
+                .Include(p => p.Account)
+                    .ThenInclude(u => u.UserProfile)
+                .ToListAsync();
+
+            var sortedPosts = posts
+                .OrderByDescending(p =>
+                {
+                    var latestPackageName = p.PostPackageDetails
+                        .OrderByDescending(ppd => ppd.CreatedAt)
+                        .Select(ppd => ppd.Pricing.PackageType.PackageTypeName)
+                        .FirstOrDefault();
+
+                    var packageTypeEnum = BadgeHelper.ParsePackageType(latestPackageName ?? string.Empty);
+
+                    return packageTypeEnum;
+                })
+                .ThenByDescending(p => p.PublishedAt)
+                .ToList();
+
+            return sortedPosts;
+        }
+
+        public async Task<Post?> GetPostDetailAsync(int postId)
+        {
+            return await _context.Posts
+                .Include(p => p.Accommodation)
+                    .ThenInclude(a => a.AccommodationImages)
+                .FirstOrDefaultAsync(p => p.PostId == postId);
+        }
     }
 }

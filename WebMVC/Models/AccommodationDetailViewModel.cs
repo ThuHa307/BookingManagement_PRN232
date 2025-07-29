@@ -71,5 +71,6 @@
         //Amentities
 
         public List<string> Amenities { get; set; } = new List<string>();
+        public string? CurrentStatus { get; internal set; }
     }
 }
